@@ -2,12 +2,12 @@
 """
 Created on Fri Sep 16 09:48:50 2016
 
-@author: l
+@author: Yong Cao
 """
 
 import os
-os.chdir(r"D:\DATABASE_EXTRACT")
-f1=open("uniprot-proteome_hamster_with_virus.fasta")
+os.chdir(r"D:\DATABASE_EXTRACT")  # work directory
+f1=open("uniprot-proteome_hamster_with_virus.fasta") # your orignal fasta file to extrac small
 fastalist = f1.readlines()
 namenum = []
 for i in range(len(fastalist)):
@@ -16,7 +16,7 @@ for i in range(len(fastalist)):
 namenum.append(len(fastalist))
 print(namenum)
 
-f2=open("list.txt")
+f2=open("list.txt")  # protein name list for your requir
 namelist=f2.readlines()
 f3=open("uniprot-proteome_hamster_with_virus_sub_database.fasta", 'w')
 for m in range(len(namelist)):    

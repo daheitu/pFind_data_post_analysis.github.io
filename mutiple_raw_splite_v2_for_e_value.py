@@ -1,3 +1,9 @@
+"""
+Created on Mon Aug 15 10:38:11 2016
+@author: CaoYong
+"""
+
+
 import os
 os.chdir(
     r"D:\softwareData\plink2\20160703\search_task_2016.07.05.15.18.33_Aldo_3\reports"

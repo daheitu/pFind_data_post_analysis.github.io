@@ -1,8 +1,8 @@
 """
-Created on Mon Aug 15 10:38:11 2016
+Created on Mon Aug 15 10:38:11 2017
 @author: CaoYong
+This script can help you to deal with the plink2 report file 
 """
-
 
 import os
 os.chdir(
@@ -19,15 +19,12 @@ def reduce_redundancy_list(list):
     return new_site_list
 
 
-
 # 找到包含site信息的行
 def get_site_lines(filename):
     site_table = open(filename).readlines()
     ordr_pos = []
     for i in range(len(site_table)):
-        if len([
-                x for x in site_table[i].strip().split(',') if x != ''
-        ]) == 4:
+        if len([x for x in site_table[i].strip().split(',') if x != '']) == 4:
             ordr_pos.append(i)
     ordr_pos.append(len(site_table))
     return ordr_pos, site_table
@@ -40,7 +37,7 @@ def remove_sameset():
         if fl[-22:-4] == "cross-linked_sites":
             ordr_pos, site_table = get_site_lines(fl)
     tmp = open("tmpfile", "w")
-    for i in range(1,len(ordr_pos) - 1):
+    for i in range(1, len(ordr_pos) - 1):
         Con_sameset = False
         list_sameset = []
         list_sameset.append(site_table[ordr_pos[i]].rstrip("\n").split(",")[1])
@@ -84,7 +81,7 @@ def get_crosslink_site_info():
             raw_name_list.append(site_table_new[k].strip().split(',')[2][:a])
             raw_name_list = reduce_redundancy_list(raw_name_list)
     raw_name_list.sort()
-    print(raw_name_list)
+    print("all raw data are: " +",".join(raw_name_list))
     col = [
         "Linked_site", "Total_spec", "Best_e_value", "Best_svm", "Peptide",
         "Peptide_mass", "Prote_type"

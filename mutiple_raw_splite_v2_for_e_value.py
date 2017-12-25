@@ -6,7 +6,7 @@ This script can help you to deal with the plink2 report file
 
 import os
 os.chdir(
-    r"D:\softwareData\plink2\20160703\search_task_2016.07.05.15.18.33_Aldo_3\reports"
+    r"D:\softwareData\plink2\search_task_2017.12.25.07.26.03_ALdo_kargo_T\reports"
 )
 
 
@@ -60,7 +60,7 @@ def remove_sameset():
             site_info_line_list = site_table[ordr_pos[i]].rstrip("\n").split(
                 ",")
             site_info_line_list[1] = link_site
-            tmp.write(",".join(site_info_line_list))
+            tmp.write("\t".join(site_info_line_list))
             tmp.write("\n")
             for j in range(ordr_pos[i] + 1, ordr_pos[i + 1]):
                 first_cell = site_table[j].rstrip("\n").split(",")[0]
@@ -91,7 +91,7 @@ def get_crosslink_site_info():
         col.append(name + "_E_value")
         col.append(name + "unique_pep_num")
 
-    b.write(','.join(col))
+    b.write('\t'.join(col))
     b.write('\n')
     m = 0
     link_site_total_dic = {}
@@ -147,7 +147,7 @@ def get_crosslink_site_info():
                     str(min(raw_sub_E_value_dic[raw])))
                 link_site_total_dic[linked_site].append(
                     str(len(list(set(raw_sub_peptide_dic[raw])))))
-        b.write(','.join(link_site_total_dic[linked_site]))
+        b.write('\t'.join(link_site_total_dic[linked_site]))
         b.write('\n')
     b.close()
     return
@@ -158,11 +158,11 @@ def statistic_report_file():
     rep_table = open("report.txt").readlines()
     col_dic = {}
     total_spectra = 0
-    total_colom = len(rep_table[0].strip().split(","))
+    total_colom = len(rep_table[0].strip().split("\t"))
     intra_num = 0
     for i in range(1, len(rep_table)):
-        total_spectra += int(rep_table[i].strip("\n").split(",")[1])
-        if rep_table[i].strip("\n").split(",")[5] == "intra":
+        total_spectra += int(rep_table[i].strip("\n").split("\t")[1])
+        if rep_table[i].strip("\n").split("\t")[5] == "intra":
             intra_num += 1
 
     col_dic[5] = float(intra_num) / (len(rep_table) - 1)
@@ -178,23 +178,23 @@ def statistic_report_file():
         for j in range(k, total_colom, 3):
             column_sub_dic[j] = []
             for i in range(1, len(rep_table)):
-                if rep_table[i].strip("\n").split(",")[j]:
+                if rep_table[i].strip("\n").split("\t")[j]:
                     column_sub_dic[j].append(
-                        int(rep_table[i].strip("\n").split(",")[j]))
+                        int(rep_table[i].strip("\n").split("\t")[j]))
             col_dic[j] = sum(column_sub_dic[j])
 
     for j in range(8, total_colom, 3):
         column_sub_dic[j] = []
         for i in range(1, len(rep_table)):
-            if rep_table[i].strip("\n").split(",")[j]:
+            if rep_table[i].strip("\n").split("\t")[j]:
                 column_sub_dic[j].append(
-                    round(float(rep_table[i].strip("\n").split(",")[j]), 2))
+                    round(float(rep_table[i].strip("\n").split("\t")[j]), 2))
         col_dic[j] = str(
             str(min(column_sub_dic[j])) + ',' + str(max(column_sub_dic[j])))
     last = []
     for k in range(total_colom):
         last.append(str(col_dic[k]))
-    c.write(",".join(last))
+    c.write("\t".join(last))
     print(last)
     c.close()
     return

@@ -2,7 +2,7 @@ import os
 
 
 def generate_ion_mass_range(num):
-    deta = num * 0.5 / 10000
+    deta = num * 0.5 / 100000
     return num - deta, num + deta
 
 

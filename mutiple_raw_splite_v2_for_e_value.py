@@ -6,7 +6,7 @@ This script can help you to deal with the plink2 report file
 
 import os
 os.chdir(
-    r"D:\softwareData\plink2\search_task_2017.12.25.07.26.03_ALdo_kargo_T\reports"
+    r"C:\Users\Yong\Documents\pLink\search_task_2017.12.21.09.07.51_UTPA_T_MIN_PEPT4\reports"
 )
 
 

@@ -2,24 +2,23 @@ import math
 import os
 from numpy import *
 
-os.chdir(r"C:\Users\Yong\Desktop\lecto")
+os.chdir(r"C:\Users\Yong\Documents\pLink\search_task_2018.01.18.08.59.02_lacto_argo2_4\reports")
 
+
+
+# 获得pdb 和fasta 的文件信息
 def get_basic_info():
     filename = os.listdir(os.getcwd())
     for file in filename:
         if file[-4:] == '.pdb':
+            print "The pdb is" file
             pdb = open(file, 'r').readlines()
         elif file[-6:] == '.fasta':
+            print "The fasta is" file
             fasta = open(file, 'r').readlines()
         elif file[-22:-4] == "cross-linked_sites":
             site_table = open(file, 'r').readlines()
 
-    def link_fasta(num):
-        s = ""
-        while num < len(fasta) - 1 and fasta[num + 1][0] != ">":
-            s += fasta[num + 1].strip()
-            num += 1
-        return s
 
     name_seq_in_fasta_dic = {}
     for line in fasta:

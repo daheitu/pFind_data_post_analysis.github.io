@@ -1,6 +1,6 @@
 import os
 import statistics
-os.chdir(r"D:\E\Collabaration\TC\YJ_Leptin\mono\1to1")
+os.chdir(r"D:\E\Collabaration\TC\lIUZHU\A")
 file_list = os.listdir(os.getcwd())
 for file in file_list:
     if file[-5:] == ".list":

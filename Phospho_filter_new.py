@@ -1,5 +1,5 @@
 import os
-os.chdir(r"C:\Users\Yong\Desktop\sgc")
+# os.chdir(r"C:\Users\Yong\Desktop\sgc")
 os.chdir(os.getcwd())
 tab = open("pFind.protein", 'r').readlines()
 b = open("report.txt", 'w')

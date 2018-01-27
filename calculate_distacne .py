@@ -145,7 +145,6 @@ def pretreatment_fasta(fastafile):
     return fasta_dic
 
 
-#print(pretreatment_fasta("PUD12.fasta"))
 
 
 def pretreatment_pdb(pdbfile):
@@ -192,7 +191,6 @@ def pretreatment_pdb(pdbfile):
     return pdb, pdb_chains, pdb_chain_To_seq_dic, structuredCA_To_chain_dic, structuredChain_To_seq
 
 
-#print(pretreatment_pdb("4jde_PUD.pdb")[2])
 
 
 def get_fasta_pdb_infor(path):
@@ -269,10 +267,11 @@ def get_pdb_distance(cross_link_pair):
     else:
         return "no structure information"
 
-list = open("list.txt").readlines()
-B = open("report.txt", 'w')
-for pairs in list:
-    distance = get_pdb_distance(pairs.strip())
-    B.write("\t".join([pairs.strip(), str(distance)]))
-    B.write("\n")
-B.close()
+def main():
+    list = open("list.txt").readlines()
+    B = open("report.txt", 'w')
+    for pairs in list:
+        distance = get_pdb_distance(pairs.strip())
+        B.write("\t".join([pairs.strip(), str(distance)]))
+        B.write("\n")
+    B.close()

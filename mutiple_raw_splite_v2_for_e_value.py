@@ -5,18 +5,6 @@ This script can help you to deal with the plink2 report file
 """
 
 import os
-os.chdir(
-    r"C:\Users\Yong\Desktop\sgc"
-)
-
-
-# 对list去重复
-def reduce_redundancy_list(list):
-    new_site_list = []
-    for word in list:
-        if word not in new_site_list:
-            new_site_list.append(word)
-    return new_site_list
 
 
 def get_linked_site_inform(linked_site):
@@ -33,8 +21,7 @@ def get_linked_site_inform(linked_site):
 
 
 # 找到包含site以及对应的起始和终止行
-def get_site_lines(filename):
-    site_table = open(filename, 'r').readlines()
+def get_site_lines(site_table):
     site_pos_list = []
     site_begain_pos_list = []
     site_end_pos_list = []
@@ -44,26 +31,20 @@ def get_site_lines(filename):
         if line_list[0].isdigit():
             site_pos_list.append(i)
     for pos in site_pos_list:
-        site_begain_pos_list.append(pos+1)
+        site_begain_pos_list.append(pos + 1)
     for pos in site_pos_list[1:]:
-        site_end_pos_list.append(pos-1)
+        site_end_pos_list.append(pos - 1)
 
-    site_end_pos_list.append(len(site_table)-1)
+    site_end_pos_list.append(len(site_table) - 1)
     for i in range(len(site_pos_list)):
         site = site_table[site_pos_list[i]].strip().split(",")[1]
         site_beg_end = [site_begain_pos_list[i], site_end_pos_list[i]]
         site_pos_dic[site] = site_beg_end
-    return site_table, site_pos_dic
+    return site_pos_dic
 
-
-# get_site_lines("SAGA_2018.01.23.filtered_cross-linked_sites.csv")
 
 # 去掉sameset
-def remove_sameset():
-    filename = os.listdir(os.getcwd())
-    for fl in filename:
-        if fl[-22:-4] == "cross-linked_sites":
-            tab1, site_pos_orig_dic = get_site_lines(fl)
+def remove_sameset(tab1):
     tmp = open("tmpfile", "w")
     tmp.write(tab1[0])
     tmp.write(tab1[1])
@@ -72,36 +53,34 @@ def remove_sameset():
         line_up1 = tab1[site_up].rstrip("\n").split(",")[0]
         if line_up1 == "SameSet":
             site_modify = [site]
-            for i in range(site_up, site_down+1):
+            for i in range(site_up, site_down + 1):
                 line_list = tab1[i].rstrip("\n").split(",")
                 first_cell = line_list[0]
                 if first_cell == "SameSet":
                     site_modify.append(line_list[1])
                 else:
                     continue
-            site_line_list = tab1[site_up-1].rstrip("\n").split(",")
+            site_line_list = tab1[site_up - 1].rstrip("\n").split(",")
             site_line_list[1] = "/".join(site_modify)
             tmp.write(",".join(site_line_list))
             tmp.write("\n")
-            for i in range(site_up, site_down+1):
+            for i in range(site_up, site_down + 1):
                 line_list = tab1[i].rstrip("\n").split(",")
                 first_cell = line_list[0]
                 if first_cell != "SameSet":
                     tmp.write(tab1[i])
                 else:
                     continue
-        
+
         elif line_up1 == "":
-            for i in range(site_up-1, site_down+1):
+            for i in range(site_up - 1, site_down + 1):
                 tmp.write(tab1[i])
-            
+
     tmp.close()
     return
 
 
-def get_crosslink_site_info():
-    site_table, site_pos_dic = get_site_lines("tmpfile")
-    print(site_pos_dic)
+def get_crosslink_site_info(site_table, site_pos_dic):
     b = open("report.txt", 'w')
     raw_name_list = []
     for line in site_table[2:]:
@@ -113,7 +92,7 @@ def get_crosslink_site_info():
     raw_name_list.sort()
     print("all raw data are: " + ",".join(raw_name_list))
     col = [
-        "Linked Site", "Total Spec", "Best E-value", "Best Svm Score", 
+        "Linked Site", "Total Spec", "Best E-value", "Best Svm Score",
         "Peptide", "Peptide mass", "Prote type"
     ]
     for name in raw_name_list:
@@ -131,7 +110,7 @@ def get_crosslink_site_info():
         link_site_total_dic = {}
 
         E_value_list = []
-        for i in range(site_up, site_down+1):
+        for i in range(site_up, site_down + 1):
             E_value = float(site_table[i].rstrip("\n").split(',')[8])
             E_value_list.append(E_value)
         Best_e_value = min(E_value_list)
@@ -142,17 +121,15 @@ def get_crosslink_site_info():
             Cross_type = "Intra"
         else:
             Cross_type = "inter"
-        
+
         link_site_total_dic[site] = [
             site_table[site_pos].strip("\n").split(',')[1],
             site_table[site_pos].strip("\n").split(',')[3],
-            str(Best_e_value),
-            site_table[site_up].rstrip("\n").split(',')[9],
+            str(Best_e_value), site_table[site_up].rstrip("\n").split(',')[9],
             site_table[site_up].rstrip("\n").split(',')[5],
-            site_table[site_up].rstrip("\n").split(',')[4],
-            Cross_type
+            site_table[site_up].rstrip("\n").split(',')[4], Cross_type
         ]
-        
+
         raw_sub_spectra_dic = {}
         raw_sub_E_value_dic = {}
         raw_sub_peptide_dic = {}
@@ -173,8 +150,10 @@ def get_crosslink_site_info():
                 link_site_total_dic[site].append("")
             else:
                 link_site_total_dic[site].append(str(raw_sub_spectra_dic[raw]))
-                link_site_total_dic[site].append(str(min(raw_sub_E_value_dic[raw])))
-                link_site_total_dic[site].append(str(len(list(set(raw_sub_peptide_dic[raw])))))
+                link_site_total_dic[site].append(
+                    str(min(raw_sub_E_value_dic[raw])))
+                link_site_total_dic[site].append(
+                    str(len(list(set(raw_sub_peptide_dic[raw])))))
         b.write('\t'.join(link_site_total_dic[site]))
         b.write('\n')
     b.close()
@@ -229,10 +208,35 @@ def statistic_report_file():
 
 
 def main():
-    remove_sameset()
-    get_crosslink_site_info()
-    #statistic_report_file()
-    #os.remove("tmpfile")
+    filename_list = os.listdir(os.getcwd())
+    link_site_file = ""
+    for fl in filename_list:
+        if fl[-22:-4] == "cross-linked_sites":
+            link_site_file = fl
+        else:
+            continue
+    if link_site_file == "":
+        print("Please check your cross-linked_sites file")
+    else:
+        tab1 = open(link_site_file, 'r').readlines()
+        contain_sameset = False
+        for line in tab1:
+            line_list_first_cell = line.rstrip("\n").split(",")[0]
+            if line_list_first_cell == "SameSet":
+                contain_sameset = True
+                break
+            else:
+                continue
+        if contain_sameset is False:
+            site_pos_dic = get_site_lines(tab1)
+            get_crosslink_site_info(tab1, site_pos_dic)
+            statistic_report_file()
+        else:
+            remove_sameset(tab1)
+            tmp_2 = open("tmp", 'r').readlines()
+            site_pos_dic = get_site_lines(tmp_2)
+            get_crosslink_site_info(tmp_2, site_pos_dic)
+            statistic_report_file()
 
 
 if __name__ == "__main__":

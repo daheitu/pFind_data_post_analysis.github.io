@@ -5,7 +5,11 @@ This script can help you to deal with the plink2 report file
 """
 
 import os
-
+os.chdir(
+    r"C:\Users\Yong\Documents\pLink\search_task_2018.01.23.18.20.37_SAGA_DSS\reports"
+)
+spec_cutoff = 1
+E_value_cutoff = 0.01
 
 def get_linked_site_inform(linked_site):
     m = linked_site.find("(")
@@ -45,6 +49,7 @@ def get_site_lines(site_table):
 
 # 去掉sameset
 def remove_sameset(tab1):
+    site_pos_orig_dic = get_site_lines(tab1)
     tmp = open("tmpfile", "w")
     tmp.write(tab1[0])
     tmp.write(tab1[1])
@@ -139,7 +144,7 @@ def get_crosslink_site_info(site_table, site_pos_dic):
             raw_sub_peptide_dic[raw] = []
             for j in range(site_up, site_down + 1):
                 line_list = site_table[j].rstrip("\n").split(',')
-                line_raw = line_list[3][:line_list[3].find(".")]
+                line_raw = line_list[2][:line_list[2].find(".")]
                 if line_raw == raw:
                     raw_sub_spectra_dic[raw] += 1
                     raw_sub_E_value_dic[raw].append(float(line_list[8]))
@@ -154,8 +159,9 @@ def get_crosslink_site_info(site_table, site_pos_dic):
                     str(min(raw_sub_E_value_dic[raw])))
                 link_site_total_dic[site].append(
                     str(len(list(set(raw_sub_peptide_dic[raw])))))
-        b.write('\t'.join(link_site_total_dic[site]))
-        b.write('\n')
+        if int(link_site_total_dic[site][1]) > spec_cutoff and float(link_site_total_dic[site][2]) < E_value_cutoff:
+            b.write('\t'.join(link_site_total_dic[site]))
+            b.write('\n')
     b.close()
     return
 
@@ -184,20 +190,24 @@ def statistic_report_file():
     for k in [7, 9]:
         for j in range(k, total_colom, 3):
             column_sub_dic[j] = []
-            for i in range(1, len(rep_table)):
-                if rep_table[i].strip("\n").split("\t")[j]:
-                    column_sub_dic[j].append(
-                        int(rep_table[i].strip("\n").split("\t")[j]))
+            for line in rep_table[1:]:
+                line_list = line.rstrip("\n").split("\t")
+                if line_list[j]:
+                    column_sub_dic[j].append(int(line_list[j]))
+                else:
+                    continue
             col_dic[j] = sum(column_sub_dic[j])
 
     for j in range(8, total_colom, 3):
         column_sub_dic[j] = []
-        for i in range(1, len(rep_table)):
-            if rep_table[i].strip("\n").split("\t")[j]:
-                column_sub_dic[j].append(
-                    round(float(rep_table[i].strip("\n").split("\t")[j]), 2))
-        col_dic[j] = str(
-            str(min(column_sub_dic[j])) + ',' + str(max(column_sub_dic[j])))
+        for line in rep_table[1:]:
+            line_list = line.rstrip("\n").split("\t")
+            if line_list[j]:
+                column_sub_dic[j].append(float(line_list[j]))
+            else:
+                continue
+        col_dic[j] = str(min(column_sub_dic[j])) + 'To' + str(
+            max(column_sub_dic[j]))
     last = []
     for k in range(total_colom):
         last.append(str(col_dic[k]))
@@ -227,13 +237,14 @@ def main():
                 break
             else:
                 continue
+        print(contain_sameset)
         if contain_sameset is False:
             site_pos_dic = get_site_lines(tab1)
             get_crosslink_site_info(tab1, site_pos_dic)
             statistic_report_file()
         else:
             remove_sameset(tab1)
-            tmp_2 = open("tmp", 'r').readlines()
+            tmp_2 = open("tmpfile", 'r').readlines()
             site_pos_dic = get_site_lines(tmp_2)
             get_crosslink_site_info(tmp_2, site_pos_dic)
             statistic_report_file()

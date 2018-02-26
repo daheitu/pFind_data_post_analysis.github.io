@@ -23,7 +23,7 @@ def main():
                     b.write(line[60 * i:60 * (i + 1)])
                     b.write("\n")
                 b.write(line[-p - 1:])
-
+                
 
 if __name__ == "__main__":
     main()

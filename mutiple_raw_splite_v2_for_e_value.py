@@ -1,3 +1,4 @@
+# coding: UTF-8
 """
 Created on Mon Aug 15 10:38:11 2017
 @author: CaoYong
@@ -5,23 +6,40 @@ This script can help you to deal with the plink2 report file
 """
 
 import os
+import re
+
 os.chdir(
-    r"C:\Users\Yong\Documents\pLink\search_task_2018.01.23.18.20.37_SAGA_DSS\reports"
+    r"C:\Users\Yong\Documents\pLink\search_task_2018.01.23.11.09.05_SAGA\reports"
 )
-spec_cutoff = 1
+spec_cutoff = 2  # spectra number cut-off
 E_value_cutoff = 0.01
 
+
 def get_linked_site_inform(linked_site):
-    m = linked_site.find("(")
-    n = linked_site.find(")")
+    pos_list = re.findall("\((\d*)\)", linked_site)
+    position1 = pos_list[0]
+    position2 = pos_list[1]
     p = linked_site.find("-")
-    x = linked_site.find("(", p)
-    y = linked_site.find(")", p)
+    m = linked_site.find("(" + position1 + ")-")
+    n = linked_site.find("(" + position2 + ")", p)
     protein1 = linked_site[:m].strip()
-    protein2 = linked_site[p + 1:x].strip()
-    position1 = int(linked_site[m + 1:n])
-    position2 = int(linked_site[x + 1:y])
+    protein2 = linked_site[p + 1:n].strip()
     return protein1, protein2, position1, position2
+
+
+def site_correct(linked_site):
+    pos_list = re.findall("\((\d*)\)", linked_site)
+    position1 = pos_list[0]
+    position2 = pos_list[1]
+    if "/" in linked_site:
+        return linked_site
+    else:
+        if int(position1) <= int(position2):
+            return linked_site
+        else:
+            a = linked_site.split("-")[0]
+            b = linked_site.split("-")[1]
+            return b + "-" + a
 
 
 # 找到包含site以及对应的起始和终止行
@@ -95,7 +113,7 @@ def get_crosslink_site_info(site_table, site_pos_dic):
             if raw_name not in raw_name_list:
                 raw_name_list.append(raw_name)
     raw_name_list.sort()
-    print("all raw data are: " + ",".join(raw_name_list))
+    print("All raw file are: " + ",".join(raw_name_list))
     col = [
         "Linked Site", "Total Spec", "Best E-value", "Best Svm Score",
         "Peptide", "Peptide mass", "Prote type"
@@ -107,7 +125,6 @@ def get_crosslink_site_info(site_table, site_pos_dic):
 
     b.write('\t'.join(col))
     b.write('\n')
-    m = 0
 
     for site in site_pos_dic:
         [site_up, site_down] = site_pos_dic[site]
@@ -128,8 +145,7 @@ def get_crosslink_site_info(site_table, site_pos_dic):
             Cross_type = "inter"
 
         link_site_total_dic[site] = [
-            site_table[site_pos].strip("\n").split(',')[1],
-            site_table[site_pos].strip("\n").split(',')[3],
+            site_correct(site), site_table[site_pos].strip("\n").split(',')[3],
             str(Best_e_value), site_table[site_up].rstrip("\n").split(',')[9],
             site_table[site_up].rstrip("\n").split(',')[5],
             site_table[site_up].rstrip("\n").split(',')[4], Cross_type
@@ -159,7 +175,8 @@ def get_crosslink_site_info(site_table, site_pos_dic):
                     str(min(raw_sub_E_value_dic[raw])))
                 link_site_total_dic[site].append(
                     str(len(list(set(raw_sub_peptide_dic[raw])))))
-        if int(link_site_total_dic[site][1]) > spec_cutoff and float(link_site_total_dic[site][2]) < E_value_cutoff:
+        if int(link_site_total_dic[site][1]) > spec_cutoff and float(
+                link_site_total_dic[site][2]) < E_value_cutoff:
             b.write('\t'.join(link_site_total_dic[site]))
             b.write('\n')
     b.close()
@@ -234,10 +251,10 @@ def main():
             line_list_first_cell = line.rstrip("\n").split(",")[0]
             if line_list_first_cell == "SameSet":
                 contain_sameset = True
+                print("There are SameSets in this file")
                 break
             else:
                 continue
-        print(contain_sameset)
         if contain_sameset is False:
             site_pos_dic = get_site_lines(tab1)
             get_crosslink_site_info(tab1, site_pos_dic)
@@ -248,6 +265,7 @@ def main():
             site_pos_dic = get_site_lines(tmp_2)
             get_crosslink_site_info(tmp_2, site_pos_dic)
             statistic_report_file()
+            os.remove("tmpfile")
 
 
 if __name__ == "__main__":

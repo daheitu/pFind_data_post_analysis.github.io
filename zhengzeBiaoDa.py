@@ -22,3 +22,4 @@ def get_linked_site_inform(linked_site):
 
 
 print(get_linked_site_inform(s))
+  

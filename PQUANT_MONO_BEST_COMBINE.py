@@ -1,4 +1,5 @@
 import os
+import re
 import statistics
 
 MB_dif_cuoff = 0.15
@@ -10,8 +11,9 @@ def format_ratio(numb):
     else:
         return str(round(numb, 3))
 
+
 def get_char_pos_list(str2, str1):
-    pos_list =[]
+    pos_list = []
     if str1.count(str2) == 0:
         return pos_list
     else:
@@ -25,15 +27,8 @@ def get_char_pos_list(str2, str1):
 
 def get_linked_site_inform(linked_site):
     print(linked_site)
-    position_list = []
-    site_list = linked_site.split("-")
-    for site in site_list:
-        up_list = get_char_pos_list("(", site)
-        down_list = get_char_pos_list(")", site)
-        print(up_list, down_list)
-        position = int(site[up_list[-1]+1: down_list[-1]])
-        position_list.append(position)
-    return position_list
+    pos_list = re.findall("\((\d*)\)", linked_site)
+    return pos_list
 
 
 def judgeAndCal(link_site, ratio_list_mono, ratio_list_best):
@@ -45,11 +40,11 @@ def judgeAndCal(link_site, ratio_list_mono, ratio_list_best):
     for i in range(len(mono_list)):
         noma_list.append((float(mono_list[i]) + float(best_list[i])) / 2)
     Inter_pect = (noma_list[1] + noma_list[0]) / (1 + noma_list[2])
-    if Inter_pect ==1:
+    if Inter_pect == 1:
         return "Inter", 1000.0
     else:
         Ratio_Inter_Intra = Inter_pect / (1 - Inter_pect)
-        if abs(pos1 - pos2) < 5:
+        if abs(int(pos1) - int(pos2)) < 5:
             return "Inter", Ratio_Inter_Intra
         else:
             if Ratio_Inter_Intra < 0:
@@ -82,7 +77,8 @@ def simplify_protein_list(f):
         for line in f:
             line_list = line.strip().split("\t")
             if line_list[3][0].isdigit():
-                ratio_ori = ";".join([line_list[3], line_list[10], line_list[17]])
+                ratio_ori = ";".join(
+                    [line_list[3], line_list[10], line_list[17]])
                 ratio_cor = ";".join([
                     format_ratio(float(line_list[3]) / mdi),
                     format_ratio(float(line_list[10]) / mdi),
@@ -90,8 +86,8 @@ def simplify_protein_list(f):
                 ])
                 sigma = ";".join([line_list[4], line_list[11], line_list[18]])
                 site_dic[line_list[0]] = [
-                    line_list[0], line_list[2], line_list[8], ratio_ori, ratio_cor,
-                    sigma
+                    line_list[0], line_list[2], line_list[8], ratio_ori,
+                    ratio_cor, sigma
                 ]
         return site_dic
 
@@ -122,9 +118,9 @@ def cydiv(str1, str2):
 "D:\E\Collabaration\TC\DIUB_5\Quant\B\EGS\quant\Mono"
 "pQuant.proteins_EGS.list"
 
-for char in ["E"]: #"B" , "C", "D", 
+for char in ["A"]:  #"B" , "C", "D",
     for linker in ["BS3", "BS2G", "DST", "EGS"]:
-        path = "D:\\E\\Collabaration\\TC\DIUB_5\\Quant\\" + char + "\\" + linker + "\\" + "QUANT"
+        path = "D:\\E\\Collabaration\\TC\DIUB_5\\Quant\\" + char + "\\" + linker + "\\" + "quant"
         print(path)
         os.chdir(path)
         report_file = "DiUb_" + char + "_" + linker + "_" + "QUANT.txt"
@@ -135,6 +131,7 @@ for char in ["E"]: #"B" , "C", "D",
             "Best ratio Correction", "Best sigam"
         ]))
         b.write("\n")
+
         file1_name = path + "\\Mono\\pQuant.proteins_" + linker + ".list"
         file2_name = path + "\\Best\\pQuant.proteins_" + linker + ".list"
         f1 = open(file1_name, 'r').readlines()
@@ -148,25 +145,27 @@ for char in ["E"]: #"B" , "C", "D",
             for site in f1_dic:
                 if site in f2_dic.keys():
                     if f1_dic[site][2] == f2_dic[site][2] and f1_dic[site][1] == f2_dic[site][1]:
-                        f1_dic[site].append(f2_dic[site][3])
-                        f1_dic[site].append(f2_dic[site][4])
-                        f1_dic[site].append(f2_dic[site][5])
+                        f1_dic[site].extend(f2_dic[site][3:6])
+
                     else:
                         print("spectra numer wrong" + site)
                 else:
                     print("file wrong")
+                
                 mono_ratio_list = f1_dic[site][4].split(";")
                 Best_ratio_list = f1_dic[site][7].split(";")
-                #print(mono_ratio_list, Best_ratio_list)
+
                 AlBh = cydiv(mono_ratio_list[0], Best_ratio_list[0])
                 AhBl = cydiv(mono_ratio_list[1], Best_ratio_list[1])
                 AhBh = cydiv(mono_ratio_list[2], Best_ratio_list[2])
+                
                 if [AlBh, AhBl, AhBh].count(True) == 3:
                     f1_dic[site].append("right")
                     Link_type, Inter_Intra_ratio = judgeAndCal(
                         f1_dic[site][0], f1_dic[site][4], f1_dic[site][7])
                     f1_dic[site].append(",".join([
-                        Link_type, "(" + str(format_ratio(Inter_Intra_ratio)) + ")"
+                        Link_type,
+                        "(" + str(format_ratio(Inter_Intra_ratio)) + ")"
                     ]))
                 else:
                     f1_dic[site].append("wrong")
@@ -178,5 +177,4 @@ for char in ["E"]: #"B" , "C", "D",
         print("done")
         b.close()
 
-print("hello world")
-print("what's the fuck")
+print("Done")

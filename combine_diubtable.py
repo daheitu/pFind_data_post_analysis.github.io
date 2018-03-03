@@ -1,23 +1,22 @@
 import os
+import re
 os.chdir(r"D:\E\Collabaration\TC\DIUB_5\Quant\B\results")
 file_list = os.listdir(os.getcwd())
 
 
-def site_correct(link_pair):
-    m = link_pair.find("(")
-    n = link_pair.find(")")
-    p = link_pair.find("-")
-    x = link_pair.find("(", p)
-    y = link_pair.find(")", p)
-    protein1 = link_pair[:m].strip()
-    protein2 = link_pair[p + 1:x].strip()
-    position1 = int(link_pair[m + 1:n])
-    position2 = int(link_pair[x + 1:y])
-    if position1 > position2:
-        site = link_pair[p + 1:] + "-" + link_pair[:p]
+def site_correct(linked_site):
+    pos_list = re.findall("\((\d*)\)", linked_site)
+    position1 = pos_list[0]
+    position2 = pos_list[1]
+    if "/" in linked_site:
+        return linked_site
     else:
-        site = link_pair
-    return site
+        if int(position1) <= int(position2):
+            return linked_site
+        else:
+            a = linked_site.split("-")[0]
+            b = linked_site.split("-")[1]
+            return b + "-" + a
 
 
 tmp = open('tmp', 'w')

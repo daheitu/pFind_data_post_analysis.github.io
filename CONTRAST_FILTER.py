@@ -58,7 +58,8 @@ for line in f[1:]:
     sample_4_spec = line_list[7]
     sample_3_spec = line_list[10]
     sample_2_spec = line_list[13]
-    sample_list =[sample_5_spec, sample_4_spec, sample_3_spec, sample_2_spec, sample_1_spec]
+    sample_list =[sample_5_spec, sample_4_spec, sample_3_spec, 
+        sample_2_spec, sample_1_spec]
     print(sample_list)
     for i in range(len(sample_list)):
         if sample_list[i] == "":

@@ -30,4 +30,3 @@ for file in file_list:
                 r.write("\t".join(line_simp))
                 r.write("\n")
         r.close()
-        

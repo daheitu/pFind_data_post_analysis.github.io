@@ -9,10 +9,34 @@ import os
 import re
 
 os.chdir(
-    r"C:\Users\Yong\Documents\pLink\search_task_2018.01.23.11.09.05_SAGA\reports"
+    r"C:\Users\Yong\Documents\pLink\pLink_task_2018.03.22.07.43.29_APO_ADP_BS2G\reports"
 )
 spec_cutoff = 2  # spectra number cut-off
 E_value_cutoff = 0.01
+
+
+def get_report_file_name():
+    path = os.getcwd()
+    path_d = os.path.dirname(path)
+    os.chdir(path_d)
+    file_list = os.listdir(path_d)
+    for fl in file_list:
+        if fl[-5:] == "plink":
+            para = open(fl).readlines()
+        else:
+            continue
+    for line in para:
+        if line[:10] == "spec_title":
+            spec_title = line.rstrip("\n").split("=")[1].strip()
+        elif line[:11] == "enzyme_name":
+            enzyme = line.rstrip("\n").split("=")[1].strip()
+        elif line[:7] == "linker1":
+            linker = line.rstrip("\n").split("=")[1].strip()
+        else:
+            continue
+    report_file_name = spec_title + "_" + enzyme + "_" + linker + ".txt"
+    os.chdir(path)
+    return report_file_name
 
 
 def get_linked_site_inform(linked_site):
@@ -31,15 +55,39 @@ def site_correct(linked_site):
     pos_list = re.findall("\((\d*)\)", linked_site)
     position1 = pos_list[0]
     position2 = pos_list[1]
-    if "/" in linked_site:
+    if int(position1) <= int(position2):
         return linked_site
     else:
-        if int(position1) <= int(position2):
-            return linked_site
+        a = linked_site.split("-")[0]
+        b = linked_site.split("-")[1]
+        return b + "-" + a
+
+
+def site_list_correction(linked_site):
+    if "/" in linked_site:
+        site_list = linked_site.split("/")
+        new_linked_list = []
+        for site in site_list:
+            if "REVERSE" in site:
+                continue
+            elif "gi|CON" in site:
+                continue
+            else:
+                new_linked_list.append(site)
+        if new_linked_list == []:
+            return ""
+        elif len(new_linked_list) == 1:
+            return site_correct(new_linked_list[0])
         else:
-            a = linked_site.split("-")[0]
-            b = linked_site.split("-")[1]
-            return b + "-" + a
+            for i in range(len(new_linked_list)):
+                new_linked_list[i] = site_correct(new_linked_list[i])
+            site_list.sort()
+            return "/".join(site_list)        
+    else:
+        if "gi|CON" in linked_site:
+            return ""
+        else:
+            return site_correct(linked_site)
 
 
 # 找到包含site以及对应的起始和终止行
@@ -104,7 +152,8 @@ def remove_sameset(tab1):
 
 
 def get_crosslink_site_info(site_table, site_pos_dic):
-    b = open("report.txt", 'w')
+    report_file_name = get_report_file_name()
+    b = open(report_file_name, 'w')
     raw_name_list = []
     for line in site_table[2:]:
         line_list = line.rstrip("\n").split(",")
@@ -113,7 +162,7 @@ def get_crosslink_site_info(site_table, site_pos_dic):
             if raw_name not in raw_name_list:
                 raw_name_list.append(raw_name)
     raw_name_list.sort()
-    print("All raw file are: " + ",".join(raw_name_list))
+    print("All raw files are: " + ",".join(raw_name_list))
     col = [
         "Linked Site", "Total Spec", "Best E-value", "Best Svm Score",
         "Peptide", "Peptide mass", "Prote type"
@@ -127,65 +176,71 @@ def get_crosslink_site_info(site_table, site_pos_dic):
     b.write('\n')
 
     for site in site_pos_dic:
-        [site_up, site_down] = site_pos_dic[site]
-        site_pos = site_up - 1
-        link_site_total_dic = {}
-
-        E_value_list = []
-        for i in range(site_up, site_down + 1):
-            E_value = float(site_table[i].rstrip("\n").split(',')[8])
-            E_value_list.append(E_value)
-        Best_e_value = min(E_value_list)
-
-        Pro1Name = get_linked_site_inform(site)[0]
-        Pro2Name = get_linked_site_inform(site)[1]
-        if Pro1Name == Pro2Name:
-            Cross_type = "Intra"
+        if site_list_correction(site) == "":
+            continue
         else:
-            Cross_type = "inter"
+            [site_up, site_down] = site_pos_dic[site]
+            site_pos = site_up - 1
+            link_site_total_dic = {}
 
-        link_site_total_dic[site] = [
-            site_correct(site), site_table[site_pos].strip("\n").split(',')[3],
-            str(Best_e_value), site_table[site_up].rstrip("\n").split(',')[9],
-            site_table[site_up].rstrip("\n").split(',')[5],
-            site_table[site_up].rstrip("\n").split(',')[4], Cross_type
-        ]
+            E_value_list = []
+            for i in range(site_up, site_down + 1):
+                E_value = float(site_table[i].rstrip("\n").split(',')[8])
+                E_value_list.append(E_value)
+            Best_e_value = min(E_value_list)
 
-        raw_sub_spectra_dic = {}
-        raw_sub_E_value_dic = {}
-        raw_sub_peptide_dic = {}
-        for raw in raw_name_list:
-            raw_sub_spectra_dic[raw] = 0
-            raw_sub_E_value_dic[raw] = []
-            raw_sub_peptide_dic[raw] = []
-            for j in range(site_up, site_down + 1):
-                line_list = site_table[j].rstrip("\n").split(',')
-                line_raw = line_list[2][:line_list[2].find(".")]
-                if line_raw == raw:
-                    raw_sub_spectra_dic[raw] += 1
-                    raw_sub_E_value_dic[raw].append(float(line_list[8]))
-                    raw_sub_peptide_dic[raw].append(line_list[5])
-            if raw_sub_spectra_dic[raw] == 0:
-                link_site_total_dic[site].append("")
-                link_site_total_dic[site].append("")
-                link_site_total_dic[site].append("")
+            Pro1Name = get_linked_site_inform(site)[0]
+            Pro2Name = get_linked_site_inform(site)[1]
+            if Pro1Name == Pro2Name:
+                Cross_type = "Intra"
             else:
-                link_site_total_dic[site].append(str(raw_sub_spectra_dic[raw]))
-                link_site_total_dic[site].append(
-                    str(min(raw_sub_E_value_dic[raw])))
-                link_site_total_dic[site].append(
-                    str(len(list(set(raw_sub_peptide_dic[raw])))))
-        if int(link_site_total_dic[site][1]) > spec_cutoff and float(
-                link_site_total_dic[site][2]) < E_value_cutoff:
-            b.write('\t'.join(link_site_total_dic[site]))
-            b.write('\n')
+                Cross_type = "inter"
+
+            link_site_total_dic[site] = [
+                site_list_correction(site), site_table[site_pos].strip("\n").split(',')[3],
+                str(Best_e_value), site_table[site_up].rstrip("\n").split(',')[9],
+                site_table[site_up].rstrip("\n").split(',')[5],
+                site_table[site_up].rstrip("\n").split(',')[4], Cross_type
+            ]
+
+            raw_sub_spectra_dic = {}
+            raw_sub_E_value_dic = {}
+            raw_sub_peptide_dic = {}
+            for raw in raw_name_list:
+                raw_sub_spectra_dic[raw] = 0
+                raw_sub_E_value_dic[raw] = []
+                raw_sub_peptide_dic[raw] = []
+                for j in range(site_up, site_down + 1):
+                    line_list = site_table[j].rstrip("\n").split(',')
+                    line_raw = line_list[2][:line_list[2].find(".")]
+                    if line_raw == raw:
+                        raw_sub_spectra_dic[raw] += 1
+                        raw_sub_E_value_dic[raw].append(float(line_list[8]))
+                        raw_sub_peptide_dic[raw].append(line_list[5])
+                if raw_sub_spectra_dic[raw] == 0:
+                    link_site_total_dic[site].append("")
+                    link_site_total_dic[site].append("")
+                    link_site_total_dic[site].append("")
+                else:
+                    link_site_total_dic[site].append(str(raw_sub_spectra_dic[raw]))
+                    link_site_total_dic[site].append(
+                        str(min(raw_sub_E_value_dic[raw])))
+                    link_site_total_dic[site].append(
+                        str(len(list(set(raw_sub_peptide_dic[raw])))))
+            if int(link_site_total_dic[site][1]) > spec_cutoff and float(
+                    link_site_total_dic[site][2]) < E_value_cutoff:
+                b.write('\t'.join(link_site_total_dic[site]))
+                b.write('\n')
+            else:
+                continue
     b.close()
     return
 
 
 def statistic_report_file():
-    c = open("report.txt", 'a')
-    rep_table = open("report.txt").readlines()
+    report_file_name = get_report_file_name()
+    c = open(report_file_name, 'a')
+    rep_table = open(report_file_name, 'r').readlines()
     col_dic = {}
     total_spectra = 0
     total_colom = len(rep_table[0].strip().split("\t"))

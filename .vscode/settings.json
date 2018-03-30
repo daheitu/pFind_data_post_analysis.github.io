@@ -1,5 +1,8 @@
 {
     "python.pythonPath": "C:\\Program Files\\Python36\\python.exe",
     "python.linting.enabled": true,
-    "python.linting.flake8Enabled": true
+    "python.linting.flake8Enabled": true,
+    "editor.fontSize": 14,
+    "File Icon Theme": "vscode-icons",
+    "python.formatting.provider": "yapf"
 }

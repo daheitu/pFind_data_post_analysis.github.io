@@ -2,8 +2,8 @@ import math
 import os
 from numpy import *
 
-CrossLink_sites_list = ["K", "R"]
-path = r"C:\Users\Yong\Desktop\sgc\CNGP"
+CrossLink_sites_list = ["K", "K"]
+path = r"C:\Users\Yong\Desktop\sgc\wjh"
 os.chdir(path)
 
 AA_dict = dict(
@@ -116,7 +116,7 @@ def print_longest_common_subsequence(lhs, rhs):
     return rst
 
 
-def cal_pdb_dis((chain_a, num1), (chain_b, num2), pdb):
+def cal_pdb_dis(chain_a, num1, chain_b, num2, pdb):
     x_1 = 0
     x_2 = 0
     y_1 = 0
@@ -234,21 +234,21 @@ def get_fasta_pdb_infor(fasta, pdb):
 
     Delta_PdbNum_To_FastaNum = {}
     for chain in pdb_chains:
-        pdb_seq = structuredChain_To_seq[chain]
-        fasta_seq = FastaDic[PdbChain_To_ProName_dict[chain]]
+        pdb_seq = structuredChain_To_seq[chain]  # 有结构的PDB 的序列
+        fasta_seq = FastaDic[PdbChain_To_ProName_dict[chain]]  # fasta 序列
         MaxSubstr_fastaTOpdb = print_longest_over_substrate(pdb_seq, fasta_seq)
         Substr_index_in_fasta = fasta_seq.index(MaxSubstr_fastaTOpdb)
         Substr_index_in_pdb = pdb_seq.index(MaxSubstr_fastaTOpdb)
-        Substr_SeriesNum_in_Pdb = structuredCA_To_chain_dic[chain].keys()[
-            Substr_index_in_pdb]
+        Substr_SeriesNum_in_Pdb = list(
+            structuredCA_To_chain_dic[chain].keys())[Substr_index_in_pdb]
         Delta = Substr_index_in_fasta + 1 - Substr_SeriesNum_in_Pdb
         Delta_PdbNum_To_FastaNum[chain] = Delta
 
     return PdbChain_To_ProName_dict, Delta_PdbNum_To_FastaNum
 
 
-
-def get_pdb_distance(cross_link_pair, PdbChain_To_ProName_dict, Delta_PdbNum_To_FastaNum, structuredCA_To_chain_dic, pdb):
+def get_pdb_distance(cross_link_pair, PdbChain_To_ProName_dict,
+                     Delta_PdbNum_To_FastaNum, structuredCA_To_chain_dic, pdb):
     protein1, protein2, position1, position2 = get_linked_site_inform(
         cross_link_pair)
     site_1_chain = []
@@ -267,14 +267,16 @@ def get_pdb_distance(cross_link_pair, PdbChain_To_ProName_dict, Delta_PdbNum_To_
                 site_2_chain.append((chain, Correct_Posi2))
             else:
                 return "W"
-    print site_1_chain, site_2_chain
+    print(site_1_chain, site_2_chain)
     if len(site_1_chain) and len(site_2_chain):
         all_distance = []
         all_distance_dic = {}
         for i in range(len(site_1_chain)):
             for j in range(len(site_2_chain)):
-                all_distance_dic[site_1_chain[i], site_2_chain[
-                    j]] = cal_pdb_dis(site_1_chain[i], site_2_chain[j], pdb)
+                all_distance_dic[
+                    site_1_chain[i], site_2_chain[j]] = cal_pdb_dis(
+                        site_1_chain[i][0], site_1_chain[i][1],
+                        site_2_chain[j][0], site_2_chain[j][1], pdb)
         all_distance = all_distance_dic.values()
         if len(all_distance) == 1:
             return round(min(all_distance), 2)
@@ -287,25 +289,27 @@ def get_pdb_distance(cross_link_pair, PdbChain_To_ProName_dict, Delta_PdbNum_To_
 
 
 def main():
-    list = open("list.txt").readlines()
+    list = open("AB.txt").readlines()
     B = open("report.txt", 'w')
     file_list = os.listdir(os.getcwd())
     for fl in file_list:
         if fl[-6:] == ".fasta":
             fasta = open(fl, 'r').readlines()
-            print "The fasta file is " + fl
+            print("The fasta file is " + fl)
         elif fl[-4:] == ".pdb":
             pdb = open(fl, 'r').readlines()
-            print "The pdb file is " + fl
+            print("The pdb file is " + fl)
         else:
             continue
 
     PdbChain_To_ProName_dict = get_fasta_pdb_infor(fasta, pdb)[0]
     Delta_PdbNum_To_FastaNum = get_fasta_pdb_infor(fasta, pdb)[1]
     structuredCA_To_chain_dic = pretreatment_pdb(pdb)[2]
-    print PdbChain_To_ProName_dict
+    print(PdbChain_To_ProName_dict)
     for pairs in list:
-        distance = get_pdb_distance(pairs.strip(), PdbChain_To_ProName_dict, Delta_PdbNum_To_FastaNum, structuredCA_To_chain_dic, pdb)
+        distance = get_pdb_distance(pairs.strip(), PdbChain_To_ProName_dict,
+                                    Delta_PdbNum_To_FastaNum,
+                                    structuredCA_To_chain_dic, pdb)
         B.write("\t".join([pairs.strip(), str(distance)]))
         B.write("\n")
     B.close()

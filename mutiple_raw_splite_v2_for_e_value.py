@@ -9,8 +9,7 @@ import os
 import re
 
 os.chdir(
-    r"C:\Users\Yong\Documents\pLink\pLink_task_2018.04.09.20.53.15\reports"
-)
+    r"C:\Users\Yong\Documents\pLink\pLink_task_2018.04.09.20.53.15\reports")
 spec_cutoff = 2  # spectra number cut-off
 E_value_cutoff = 0.01
 
@@ -82,7 +81,7 @@ def site_list_correction(linked_site):
             for i in range(len(new_linked_list)):
                 new_linked_list[i] = site_correct(new_linked_list[i])
             site_list.sort()
-            return "/".join(site_list)        
+            return "/".join(site_list)
     else:
         if "gi|CON" in linked_site:
             return ""
@@ -197,8 +196,10 @@ def get_crosslink_site_info(site_table, site_pos_dic):
                 Cross_type = "inter"
 
             link_site_total_dic[site] = [
-                site_list_correction(site), site_table[site_pos].strip("\n").split(',')[3],
-                str(Best_e_value), site_table[site_up].rstrip("\n").split(',')[9],
+                site_list_correction(site),
+                site_table[site_pos].strip("\n").split(',')[3],
+                str(Best_e_value),
+                site_table[site_up].rstrip("\n").split(',')[9],
                 site_table[site_up].rstrip("\n").split(',')[5],
                 site_table[site_up].rstrip("\n").split(',')[4], Cross_type
             ]
@@ -222,7 +223,8 @@ def get_crosslink_site_info(site_table, site_pos_dic):
                     link_site_total_dic[site].append("")
                     link_site_total_dic[site].append("")
                 else:
-                    link_site_total_dic[site].append(str(raw_sub_spectra_dic[raw]))
+                    link_site_total_dic[site].append(
+                        str(raw_sub_spectra_dic[raw]))
                     link_site_total_dic[site].append(
                         str(min(raw_sub_E_value_dic[raw])))
                     link_site_total_dic[site].append(

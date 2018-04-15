@@ -1,9 +1,7 @@
 import os
 #sample_list =['A', 'B', 'C', 'D', 'E']
-sample_list = ['A']
-crossliner = ['BS2G', 'DST', 'EGS']
-
-# crossliner = ['BS3']
+# sample_list = ['A']
+crossliner = ['BS3', 'BS2G', 'DSS', 'EGS']
 
 
 def combine_and_filter_spectra_file(path):
@@ -35,12 +33,12 @@ template_2 = open(
 
 for sample in sample_list:
     for linker in crossliner:
-        path = "/nibs/home/ycao/Collaboration/TC/liuzhu_5diub/" + sample + '/' + linker
+        path = "/nibs/home/ycao/Collaboration/TC/tang_unrpn" + '/' + linker
         os.system('cd ' + path)
         os.chdir(path)
         os.system('rm -r quant')
         os.system('mkdir quant')
-        os.system('cp ./2.report/sample1/UB_[0-9].spectra.xls ./quant')
+        os.system('cp ./2.report/sample1/cyub_[0-9].spectra.xls ./quant')
         os.system('cd ./quant')
         os.chdir(path + '/quant')
         combine_and_filter_spectra_file(path + '/quant')
@@ -54,8 +52,8 @@ for sample in sample_list:
                 elif linker == "BS2G":
                     tmp.write(line[:63] + "aa-BS2G.ini;VIP")
                     tmp.write("\n")
-                elif linker == "DST":
-                    tmp.write(line[:63] + "aa-DST.ini;VIP")
+                elif linker == "DSS":
+                    tmp.write(line[:63] + "aa-BS3.ini;VIP")
                     tmp.write("\n")
                 else:
                     tmp.write(line[:63] + "aa-EGS.ini;VIP")

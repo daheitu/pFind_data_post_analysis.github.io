@@ -118,63 +118,63 @@ def cydiv(str1, str2):
 "D:\E\Collabaration\TC\DIUB_5\Quant\B\EGS\quant\Mono"
 "pQuant.proteins_EGS.list"
 
-for char in ["A"]:  #"B" , "C", "D",
-    for linker in ["BS3", "BS2G", "DST", "EGS"]:
-        path = "D:\\E\\Collabaration\\TC\DIUB_5\\Quant\\" + char + "\\" + linker + "\\" + "quant"
-        print(path)
-        os.chdir(path)
-        report_file = "DiUb_" + char + "_" + linker + "_" + "QUANT.txt"
-        b = open(report_file, 'w')
-        b.write("\t".join([
-            "Link_site", "Leading group", "PSM", "Mono ratio origin",
-            "Mono ratio Correction", "Mono sigma", "Best ratio origin",
-            "Best ratio Correction", "Best sigam"
-        ]))
-        b.write("\n")
+# for char in ["A"]:  #"B" , "C", "D",
+for linker in ["BS3", "BS2G", "DSS"]: # , "EGS"]
+    path = "D:\\E\\Collabaration\\TC\DiUB_RNP\\" + "\\" + linker + "\\" + "quant"
+    print(path)
+    os.chdir(path)
+    report_file = "DiUb"  + "_" + linker + "_" + "QUANT.txt"
+    b = open(report_file, 'w')
+    b.write("\t".join([
+        "Link_site", "Leading group", "PSM", "Mono ratio origin",
+        "Mono ratio Correction", "Mono sigma", "Best ratio origin",
+        "Best ratio Correction", "Best sigam"
+    ]))
+    b.write("\n")
 
-        file1_name = path + "\\Mono\\pQuant.proteins_" + linker + ".list"
-        file2_name = path + "\\Best\\pQuant.proteins_" + linker + ".list"
-        f1 = open(file1_name, 'r').readlines()
-        f2 = open(file2_name, 'r').readlines()
-        print(len(f1), len(f2))
-        f1_dic = simplify_protein_list(f1)
-        f2_dic = simplify_protein_list(f2)
-        if f1_dic == {} and f2_dic == {}:
-            continue
-        else:
-            for site in f1_dic:
-                if site in f2_dic.keys():
-                    if f1_dic[site][2] == f2_dic[site][2] and f1_dic[site][1] == f2_dic[site][1]:
-                        f1_dic[site].extend(f2_dic[site][3:6])
+    file1_name = path + "\\Mono\\pQuant.proteins_" + linker + ".list"
+    file2_name = path + "\\Best\\pQuant.proteins_" + linker + ".list"
+    f1 = open(file1_name, 'r').readlines()
+    f2 = open(file2_name, 'r').readlines()
+    print(len(f1), len(f2))
+    f1_dic = simplify_protein_list(f1)
+    f2_dic = simplify_protein_list(f2)
+    if f1_dic == {} and f2_dic == {}:
+        continue
+    else:
+        for site in f1_dic:
+            if site in f2_dic.keys():
+                if f1_dic[site][2] == f2_dic[site][2] and f1_dic[site][1] == f2_dic[site][1]:
+                    f1_dic[site].extend(f2_dic[site][3:6])
 
-                    else:
-                        print("spectra numer wrong" + site)
                 else:
-                    print("file wrong")
-                
-                mono_ratio_list = f1_dic[site][4].split(";")
-                Best_ratio_list = f1_dic[site][7].split(";")
+                    print("spectra numer wrong" + site)
+            else:
+                print("file wrong")
+            
+            mono_ratio_list = f1_dic[site][4].split(";")
+            Best_ratio_list = f1_dic[site][7].split(";")
 
-                AlBh = cydiv(mono_ratio_list[0], Best_ratio_list[0])
-                AhBl = cydiv(mono_ratio_list[1], Best_ratio_list[1])
-                AhBh = cydiv(mono_ratio_list[2], Best_ratio_list[2])
-                
-                if [AlBh, AhBl, AhBh].count(True) == 3:
-                    f1_dic[site].append("right")
-                    Link_type, Inter_Intra_ratio = judgeAndCal(
-                        f1_dic[site][0], f1_dic[site][4], f1_dic[site][7])
-                    f1_dic[site].append(",".join([
-                        Link_type,
-                        "(" + str(format_ratio(Inter_Intra_ratio)) + ")"
-                    ]))
-                else:
-                    f1_dic[site].append("wrong")
-                    f1_dic[site].append("")
+            AlBh = cydiv(mono_ratio_list[0], Best_ratio_list[0])
+            AhBl = cydiv(mono_ratio_list[1], Best_ratio_list[1])
+            AhBh = cydiv(mono_ratio_list[2], Best_ratio_list[2])
+            
+            if [AlBh, AhBl, AhBh].count(True) == 3:
+                f1_dic[site].append("right")
+                Link_type, Inter_Intra_ratio = judgeAndCal(
+                    f1_dic[site][0], f1_dic[site][4], f1_dic[site][7])
+                f1_dic[site].append(",".join([
+                    Link_type,
+                    "(" + str(format_ratio(Inter_Intra_ratio)) + ")"
+                ]))
+            else:
+                f1_dic[site].append("wrong")
+                f1_dic[site].append("")
 
-                f1_dic[site]
-                b.write("\t".join(f1_dic[site]))
-                b.write("\n")
-        print("done")
-        b.close()
+            f1_dic[site]
+            b.write("\t".join(f1_dic[site]))
+            b.write("\n")
+    print("done")
+    b.close()
 
 print("Done")

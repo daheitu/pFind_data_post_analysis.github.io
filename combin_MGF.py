@@ -1,6 +1,6 @@
 
 import os
-os.chdir(r"E:\20170310\T3")
+os.chdir(r"F:\A70_PEPTIDE\DK")
 filenames = os.listdir(os.getcwd())
 comb = open("combine.mgf", 'w')
 for name in filenames:

@@ -9,9 +9,9 @@ import os
 import re
 
 os.chdir(
-    r"C:\Users\Yong\Documents\pLink\pLink_task_2018.04.09.20.53.15\reports")
-spec_cutoff = 2  # spectra number cut-off
-E_value_cutoff = 0.01
+    r"C:\Users\Yong\Documents\pLink\pLink_task_2018.05.10.15.15.13\reports")
+spec_cutoff = 1  # spectra number cut-off
+E_value_cutoff = 2
 
 
 def get_report_file_name():

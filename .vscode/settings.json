@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "D:\\programfile\\Anaconda3\\envs\\Python2\\python.exe",
+    "python.pythonPath": "D:\\programfile\\Anaconda3\\envs\\Python3\\python.exe",
     "python.linting.enabled": true,
     "python.linting.flake8Enabled": true,
     "editor.fontSize": 14,

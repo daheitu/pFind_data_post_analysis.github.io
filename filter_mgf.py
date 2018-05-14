@@ -1,8 +1,13 @@
 import os
 
-os.chdir(r"C:\Users\Yong\Desktop\wjh")
-deta_ppm = 1
-feature_ion_mass_list = [175.119, 246.156, 317.193, 388.230]
+os.chdir(r"F:\A70_PEPTIDE\DK")
+deta_ppm = 5
+feature_ion_mass_list = [147.1128, 261.1557, 329.1568, 374.2398]
+
+gr_N_list = [175.1189, 246.1561, 317.1932, 388.2303]
+gr_C_list = [185.1285, 256.1656, 327.2027, 398.2398]
+CR_C_list = [175.1189, 274.1874, 421.2558]
+DK_list = [147.1128, 261.1557, 374.2398, 329.1568]
 
 
 def generate_ion_mass_range(num):
@@ -81,7 +86,7 @@ for name in file_list:
 
         b = open(report_file_name, 'a+')
         b.seek(0)
-        print(len(b.readlines()))
+        # print(len(b.readlines()))
         mass_list = []
         table = open(report_file_name).readlines()
         for i in range(1, len(table)):

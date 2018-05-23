@@ -2,15 +2,15 @@
 """
 Created on Mon Aug 15 10:38:11 2017
 @author: CaoYong
-This script can help you to deal with the plink2 report file 
+This script can help you to deal with the plink2 report file
 """
 
 import os
 import re
 
 os.chdir(
-    r"C:\Users\Yong\Documents\pLink\pLink_task_2018.05.10.15.15.13\reports")
-spec_cutoff = 1  # spectra number cut-off
+    r"C:\Users\Yong\Documents\pLink\pLink_task_2018.05.23.07.28.32_GST_BUFFER_SCREEN\reports")
+spec_cutoff = 0  # spectra number cut-off
 E_value_cutoff = 2
 
 
@@ -20,7 +20,7 @@ def get_report_file_name():
     os.chdir(path_d)
     file_list = os.listdir(path_d)
     for fl in file_list:
-        if fl[-5:] == "plink":
+        if fl[-5:] in ["pfind", "plink"]:
             para = open(fl).readlines()
         else:
             continue
@@ -243,6 +243,7 @@ def statistic_report_file():
     report_file_name = get_report_file_name()
     c = open(report_file_name, 'a')
     rep_table = open(report_file_name, 'r').readlines()
+    title_list = rep_table[0].split("\t")
     col_dic = {}
     total_spectra = 0
     total_colom = len(rep_table[0].strip().split("\t"))
@@ -286,7 +287,23 @@ def statistic_report_file():
     for k in range(total_colom):
         last.append(str(col_dic[k]))
     c.write("\t".join(last))
+    c.write("\n")
     print(last)
+    raw_dic = {}
+    for i in range(7, len(title_list)):
+        raw_name_list = title_list[i].split("_")[:-1]
+        raw_name = "_".join(raw_name_list)
+        if raw_name not in raw_dic:
+            raw_dic[raw_name] = [raw_name, last[i]]
+        else:
+            raw_dic[raw_name].append(last[i])
+    
+    raw_list = list(raw_dic.keys())
+    raw_list.sort()
+    for raw in raw_list:
+        c.write("\t".join(raw_dic[raw]))
+        c.write("\n")
+
     c.close()
     return
 

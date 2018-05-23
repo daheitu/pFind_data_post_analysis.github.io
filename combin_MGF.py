@@ -1,12 +1,10 @@
 
 import os
-os.chdir(r"F:\A70_PEPTIDE\DK")
+os.chdir(r"F:\ALL ArGO data\ArGO\optimize condition\Buffer screen\GST")
 filenames = os.listdir(os.getcwd())
-comb = open("combine.mgf", 'w')
+comb = open("BSA_buffer_Screen.mgf", 'w')
 for name in filenames:
     if name[-4:] == ".mgf":
         for line in open(name):
             comb.writelines(line)
 comb.close
-
-

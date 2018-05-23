@@ -119,7 +119,6 @@ for site in site_list:
         else:
             table_dic[site].extend(["", ""])
     table_dic[site].append(judeg_linked_type(site))
-    
     rep.write("\t".join(table_dic[site]))
     rep.write("\n")
 rep.close()

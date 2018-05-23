@@ -5,7 +5,7 @@ from math import log
 def compare_num(num1, num2):
     num1 = int(num1)
     num2 = int(num2)
-    if num1 < 10 and num2 < 10:
+    if num1 < 5 and num2 < 5:
         return False
     else:
         if num1 == 0:
@@ -13,7 +13,7 @@ def compare_num(num1, num2):
         elif num2 == 0:
             return True
         else:
-            if abs(log(num1/num2, 2)) > 2:
+            if abs(log(num1 / num2, 2)) > 2:
                 return True
             else:
                 return False
@@ -58,72 +58,85 @@ def get_info(opened_file):
     print(modi_dic)
 
     b = open("report.txt", 'w')
-    for AA in modi_dic:
+    AAs = list(modi_dic.keys())
+    AAs.sort()
+    for AA in AAs:
         b.write(AA)
         b.write("\n")
-        for mass in modi_dic[AA]:
-            if modi_dic[AA][mass] > 4:
-                b.write("\t".join([mass, str(modi_dic[AA][mass])]))
-                b.write("\n")
-            else:
-                continue
+        masses = list(modi_dic[AA].keys())
+        masses.sort()
+        for mass in masses:
+            # if modi_dic[AA][mass] > 4:
+            b.write("\t".join([mass, str(modi_dic[AA][mass])]))
+            b.write("\n")
+            # else:
+            #     continue
     b.close()
 
     return modi_dic
 
 
-os.chdir(r"D:\Program Files (x86)\pFind_build_20170814\GMDSD")
-f1 = open("pFind.protein", 'r').readlines()
-GSDMS_dic = get_info(f1)
-os.chdir(r"D:\Program Files (x86)\pFind_build_20170814\CONTROL")
-f2 = open(r"pFind.protein", 'r').readlines()
-control_dic = get_info(f2)
+def main():
+    os.chdir(r"D:\Program Files (x86)\pFind_build_20170814\GMDSD")
+    f1 = open("pFind.protein", 'r').readlines()
+    GSDMS_dic = get_info(f1)
+    os.chdir(r"D:\Program Files (x86)\pFind_build_20170814\CONTROL")
+    f2 = open(r"pFind.protein", 'r').readlines()
+    control_dic = get_info(f2)
 
-print(len(GSDMS_dic), len(control_dic))
+    print(len(GSDMS_dic), len(control_dic))
 
-new_dic = {}
-for AA in control_dic:
-    comb_dic = {}
-    mass_all_list = [] 
-    for mass in control_dic[AA]:
-        if mass not in mass_all_list:
-            mass_all_list.append(mass)
-        else:
-            continue
-    for mass in GSDMS_dic:
-        if mass not in mass_all_list:
-            mass_all_list.append(mass)
-        else:
-            continue
-    for mass in mass_all_list:
-        if mass in control_dic[AA]:
-            if mass in GSDMS_dic[AA]:
-                w_list = ["", mass, str(control_dic[AA][mass]), str(GSDMS_dic[AA][mass])]
+    new_dic = {}
+    for AA in control_dic:
+        comb_dic = {}
+        mass_all_list = []
+        for mass in control_dic[AA]:
+            if mass not in mass_all_list:
+                mass_all_list.append(mass)
             else:
-                w_list = ["", mass, str(control_dic[AA][mass]), "0"]
-        else:
-            if mass in GSDMS_dic[AA]:
-                w_list = ["", mass, "0", str(GSDMS_dic[AA][mass])]
-        comb_dic[mass] = w_list
-    new_dic[AA] = comb_dic
-print(new_dic)
+                continue
+        for mass in GSDMS_dic[AA]:
+            if mass not in mass_all_list:
+                mass_all_list.append(mass)
+            else:
+                continue
+        print(mass_all_list)
+        for mass in mass_all_list:
+            if mass in control_dic[AA]:
+                if mass in GSDMS_dic[AA]:
+                    w_list = [
+                        "", mass,
+                        str(control_dic[AA][mass]),
+                        str(GSDMS_dic[AA][mass])
+                    ]
+                else:
+                    w_list = ["", mass, str(control_dic[AA][mass]), "0"]
+            else:
+                if mass in GSDMS_dic[AA]:
+                    w_list = ["", mass, "0", str(GSDMS_dic[AA][mass])]
+            comb_dic[mass] = w_list
+        new_dic[AA] = comb_dic
+    # print(new_dic)
 
-c = open("sig_site.txt", 'w')
-for AA in new_dic:
-    c.write(AA)
-    c.write("\n")
-    for mass in new_dic[AA]:
-        sig_bool = compare_num(new_dic[AA][mass][-2], new_dic[AA][mass][-1])
-        if sig_bool:
-            # wr_list = new_dic[AA][mass].insert(0, "")
-            c.write("\t".join(new_dic[AA][mass]))   
-            c.write("\n")
-    
-        # c.write("\t".join(new_dic[AA][mass]))
-        # c.write("\n")
-    # sig_bool = compare_num(new_dic[AA][-2], new_dic[AA][-1])
-    # if sig_bool:
-    #     c.write("\t".join(new_dic[AA]))
-    #     c.write("\n")
-c.close()
-print("done")
+    c = open("sig_site.txt", 'w')
+    AAs = list(new_dic.keys())
+    AAs.sort()
+    for AA in AAs:
+        c.write(AA)
+        c.write("\n")
+        masses = list(new_dic[AA].keys())
+        new_masses = sorted(masses, key=lambda i: float(i))
+        for mass in new_masses:
+            sig_bool = compare_num(new_dic[AA][mass][-2],
+                                   new_dic[AA][mass][-1])
+            if sig_bool:
+                c.write("\t".join(new_dic[AA][mass]))
+                c.write("\n")
+            else:
+                continue
+    c.close()
+    print("done")
+
+
+if __name__ == "__main__":
+    main()

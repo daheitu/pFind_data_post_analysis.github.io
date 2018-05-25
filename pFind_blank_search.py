@@ -1,5 +1,5 @@
 import os
-os.chdir(r"")
+os.chdir(r"F:\ALL ArGO data\ArGO\optimize condition\Buffer screen\BSA\blank_ArGO")
 spectra_cutoff = 4
 
 
@@ -43,6 +43,25 @@ def get_info(opened_file):
     return modi_dic
 
 
+def sort_str_digtal_list(list):
+    final_list = []
+    new_list = []
+    for char in list:
+        if char.isdigit():
+            new_list.append(int(char))
+        else:
+            new_list.append(float(char))
+    
+    new_list.sort()
+    for num in new_list:
+        if len(str(num).split(".")[1]) == 1:
+            final_list.append(str(num)+"0")
+        else:
+            final_list.append(str(num))
+
+    return final_list
+
+
 def main():
     f = open("pFind.protein", 'r').readlines()
     report_dic = get_info(f)
@@ -52,8 +71,8 @@ def main():
     for AA in AAs:
         b.write(AA)
         b.write("\n")
-        masses = list(report_dic[AA].keys())
-        masses.sort()
+        mass_1 = list(report_dic[AA].keys())
+        masses = sort_str_digtal_list(mass_1)
         for mass in masses:
             if report_dic[AA][mass] > spectra_cutoff:
                 b.write("\t".join([mass, str(report_dic[AA][mass])]))

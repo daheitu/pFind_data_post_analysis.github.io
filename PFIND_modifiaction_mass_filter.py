@@ -1,7 +1,7 @@
 import os
 
-mass_find = 141.04
-delta_ppm = 20
+mass_find = 57.02
+delta_ppm = 5
 
 
 def generate_ion_mass_range(num):
@@ -26,7 +26,15 @@ for line in f[1:]:
 
 mass_low, mass_up = generate_ion_mass_range(mass_find)
 
+find_bool = False
 for name in modifi_dic:
     if float(modifi_dic[name][2]) > mass_low and float(
             modifi_dic[name][2]) < mass_up:
+        find_bool = True
         print(name, modifi_dic[name])
+    else:
+        continue
+if find_bool is False:
+    print("None")
+else:
+    pass

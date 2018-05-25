@@ -1,9 +1,10 @@
 import os
 
-os.chdir(r"F:\A70_PEPTIDE\DK")
+os.chdir(r"E:\MASS SEPTRA DATA\20170310\H1")
 deta_ppm = 5
-feature_ion_mass_list = [147.1128, 261.1557, 329.1568, 374.2398]
+feature_ion_mass_list = [147.1128, 244.1656, 391.2340]
 
+LK_7_list = [147.1128, 244.1656, 391.2340]
 gr_N_list = [175.1189, 246.1561, 317.1932, 388.2303]
 gr_C_list = [185.1285, 256.1656, 327.2027, 398.2398]
 CR_C_list = [175.1189, 274.1874, 421.2558]

@@ -9,8 +9,8 @@ import os
 import re
 
 os.chdir(
-    r"C:\Users\Yong\Documents\pLink\pLink_task_2018.05.23.07.28.32_GST_BUFFER_SCREEN\reports")
-spec_cutoff = 0  # spectra number cut-off
+    r"C:\Users\Yong\Documents\pLink\pLink_task_2018.05.23.09.05.17_GST_buffer_screen_combine\reports")
+spec_cutoff = 1  # spectra number cut-off
 E_value_cutoff = 2
 
 

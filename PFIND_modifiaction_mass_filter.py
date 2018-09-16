@@ -1,11 +1,11 @@
-import os
+# import os
 
 mass_find = 57.02
-delta_ppm = 5
+delta_ppm = 100
 
 
 def generate_ion_mass_range(num):
-    deta = num * delta_ppm / 100000
+    deta = num * delta_ppm / 1000000
     return num - deta, num + deta
 
 

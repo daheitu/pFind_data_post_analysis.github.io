@@ -4,8 +4,8 @@ import re
 from numpy import *
 
 
-path = r"C:\Users\Yong\Desktop\DISTANCE\Cal_Pdb_Distance\PUD"
-CrossLink_sites_list = ["R", "K", "V"]
+path = r"C:\Users\Yong\Desktop\DISTANCE\Cal_Pdb_Distance\CNGP"
+XL_sites_list = ["R", "K"]
 os.chdir(path)
 
 AA_dict = dict(
@@ -124,7 +124,7 @@ def cal_pdb_dis(chain_a, num1, chain_b, num2, pdb):
                 z_2 = float(pdb[i][46:54])
     sd = (x_2 - x_1) * (x_2 - x_1) + (y_2 - y_1) * (y_2 - y_1) + (
         z_2 - z_1) * (z_2 - z_1)
-    return math.sqrt(sd)
+    return round(math.sqrt(sd), 2)
 
 
 def pretreatment_fasta(fasta):
@@ -244,7 +244,7 @@ def get_pdb_distance(cross_link_pair, PdbChain_To_ProName_dict,
         if PdbChain_To_ProName_dict[chain] == protein1:
             Correct_Posi1 = int(position1) - Delta_PdbNum_To_FastaNum[chain]
             if Correct_Posi1 in structuredCA_To_chain_dic[chain]:
-                if structuredCA_To_chain_dic[chain][Correct_Posi1] in CrossLink_sites_list:
+                if structuredCA_To_chain_dic[chain][Correct_Posi1] in XL_sites_list:
                     site_1_chain.append((chain, Correct_Posi1))
                 else:
                     return "not cross-linked AA"
@@ -254,7 +254,7 @@ def get_pdb_distance(cross_link_pair, PdbChain_To_ProName_dict,
         if PdbChain_To_ProName_dict[chain] == protein2:
             Correct_Posi2 = int(position2) - Delta_PdbNum_To_FastaNum[chain]
             if Correct_Posi2 in structuredCA_To_chain_dic[chain]:
-                if structuredCA_To_chain_dic[chain][Correct_Posi2] in CrossLink_sites_list:
+                if structuredCA_To_chain_dic[chain][Correct_Posi2] in XL_sites_list:
                     site_2_chain.append((chain, Correct_Posi2))
                 else:
                     return "not cross-linked AA"
@@ -284,7 +284,7 @@ def get_pdb_distance(cross_link_pair, PdbChain_To_ProName_dict,
 def main():
     f = open("list.txt").readlines()
     pair_list = []
-    for line in f:
+    for line in f[1:]:
         line_list = line.strip().split("\t")
         if line_list[0].isdigit():
             break
@@ -298,8 +298,9 @@ def main():
             fasta = open(fl, 'r').readlines()
             print("The fasta file is " + fl)
         elif fl[-4:] == ".pdb":
+            pdb_name = fl[:-4]
             pdb = open(fl, 'r').readlines()
-            print("The pdb file is " + fl)
+            print("The pdb file is " + pdb_name)
         else:
             continue
 
@@ -309,11 +310,78 @@ def main():
     print(PdbChain_To_ProName_dict)
     print(Delta_PdbNum_To_FastaNum)
     for pairs in pair_list:
-        distance = get_pdb_distance(pairs.strip(), PdbChain_To_ProName_dict,
-                                    Delta_PdbNum_To_FastaNum,
-                                    structuredCA_To_chain_dic, pdb)
-        B.write("\t".join([pairs.strip(), str(distance)]))
+        ptn1, ptn2, pos1, pos2 = get_linked_site_inform(pairs)
+        site_1_chain = []
+        site_2_chain = []
+        chain_list = list(PdbChain_To_ProName_dict.keys())
+        chain_list.sort()
+        for chain in chain_list:
+            if PdbChain_To_ProName_dict[chain] == ptn1:
+                pdb_Posi1 = int(pos1) - Delta_PdbNum_To_FastaNum[chain]
+                if pdb_Posi1 in structuredCA_To_chain_dic[chain]:
+                    if structuredCA_To_chain_dic[chain][pdb_Posi1] in XL_sites_list:
+                        site_1_chain.append((chain, pdb_Posi1))
+                    else:
+                        pass
+                else:
+                    pass
+            else:
+                continue
+
+        for chain in chain_list:
+            if PdbChain_To_ProName_dict[chain] == ptn2:
+                pdb_Posi2 = int(pos2) - Delta_PdbNum_To_FastaNum[chain]
+                if pdb_Posi2 in structuredCA_To_chain_dic[chain]:
+                    if structuredCA_To_chain_dic[chain][pdb_Posi2] in XL_sites_list:
+                        site_2_chain.append((chain, pdb_Posi2))
+                    else:
+                        pass
+                else:
+                    pass
+            else:
+                continue
+        print(site_1_chain, site_2_chain)
+        
+        if len(site_1_chain) and len(site_2_chain):
+            all_distance = []
+            all_dist_dic = {}
+            for i in range(len(site_1_chain)):
+                chain1 = site_1_chain[i][0]
+                site1 = site_1_chain[i][1]
+                ori_sit1 = int(site1) + Delta_PdbNum_To_FastaNum[chain1]
+                for j in range(len(site_2_chain)):            
+                    chain2 = site_2_chain[j][0]
+                    site2 = site_2_chain[j][1]
+                    ori_site2 = int(site2) + Delta_PdbNum_To_FastaNum[chain2]
+                    dis_pdb = cal_pdb_dis(chain1, site1, chain2, site2, pdb)
+                    obj_name = "dist " + chain1 + str(ori_sit1) + "_" + chain2 + str(ori_site2)
+                    selec1 = " /" + pdb_name + "//" + chain1 + "/" + str(site1) + "/"+"CA"
+                    selec2 = " /" + pdb_name + "//" + chain2 + "/" + str(site2) + "/"+"CA"
+                    pym_cmd = obj_name + "," + selec1 + "," + selec2
+                    all_dist_dic[site_1_chain[i], site_2_chain[j]] = [str(dis_pdb), pym_cmd]
+                    all_distance.append(dis_pdb)
+            
+            n = 0
+            while n < len(all_distance):
+                if all_distance[n] == 0.00:
+                    all_distance.remove(0.00)
+                else:
+                    n += 1
+            if all_distance == []:
+                min_dis = "self-cross-link"
+            else:
+                min_dis = str(min(all_distance))
+            line_write = [pairs, min_dis]
+            if all_dist_dic:
+                for key in all_dist_dic:
+                    line_write.extend(all_dist_dic[key])
+        else:
+            line_write = [pairs, "no Stru"]    
+        
+        B.write("\t".join(line_write))
         B.write("\n")
+        
+
     B.close()
 
 

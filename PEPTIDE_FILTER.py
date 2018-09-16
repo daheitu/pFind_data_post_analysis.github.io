@@ -1,13 +1,12 @@
 import os
 import re
 os.chdir(
-    r"C:\Users\Yong\Documents\pLink\pLink_task_2018.05.22.15.46.42_BSA_BUFFER_SCREEN\reports"
+    r"D:\softwareData\plink2\ArGO2\search_task_2018.01.17.09.21.43_lysozyme\reports"
 )
 file_list = os.listdir(os.getcwd())
 
 protein_list = ["Nop10 ", "Cbf5 ", "Gar1 ", "Nhp2 ", "lysozyme", "BSA", "GST", "lactoferrin", "PUD1", "PUD2", "Aldolase"]
 
-raw_list = ["Tris(BORATE)", "Tris_50mm", "borae", "hepes(BORATE)", "hepes_50"]
 
 def judge_sites(linked_site):
     pos_list = re.findall("\((\d*)\)", linked_site)
@@ -42,51 +41,27 @@ for file in file_list:
                 p = n+1
             else:
                 print(n)
-            sub_pep = {}
+            number_0dot1 = 0
             while p < len(f) and f[p].rstrip("\n").split(",")[0] == "":
-                for word in raw_list:
-                    if word in f[p]:
-                        if word not in sub_pep:
-                            sub_pep[word] = 1
-                        else:
-                            sub_pep[word] += 1
-                        break
-                    else:
-                        continue
+                number_0dot1 += 1
                 p += 1
             
-            print(sub_pep)
-            for word in sub_pep:
-                if sub_pep[word] > 1:
-                    if word not in pep_dic:
-                        pep_dic[word] = 1
-                    else:
-                        pep_dic[word] += 1
-                else:
-                    continue
-        
+            if pep not in pep_dic:
+                pep_dic[pep] = [pep, link_site, str(number_0dot1)]
+            else:
+                print(pep)
             n = p
-        print(pep_dic)
-        """
         b = open("pep_report.txt", "w")
         num_0dot1 = 0
         num_0dot2 = 0
         for key in pep_dic:         
             if judge_sites(pep_dic[key][1][:-1]):
-                if int(pep_dic[key][2]) > 1 and int(pep_dic[key][3]) > 1:
+                if int(pep_dic[key][2]) > 1 :
                     b.write("\t".join(pep_dic[key]))
                     b.write("\n")
                     num_0dot1 += 1
-                    num_0dot2 += 1
-                elif int(pep_dic[key][2]) > 1 and int(pep_dic[key][3]) < 2:
-                    b.write("\t".join(pep_dic[key]))
-                    b.write("\n")
-                    num_0dot1 += 1
-                elif int(pep_dic[key][2]) < 2 and int(pep_dic[key][3]) > 1:
-                    b.write("\t".join(pep_dic[key]))
-                    b.write("\n")
-                    num_0dot2 += 1
+                else:
+                    pass
             else:
                 continue
-        print(num_0dot1, num_0dot2)
-"""
+        print(num_0dot1)

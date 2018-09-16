@@ -1,9 +1,9 @@
 import os
 import re
 
-spec_cutoff = 2
-evaule_cutoff = 0.001
-#os.chdir(r"E:\Script\test\BS2G")
+spec_cutoff = 1
+evaule_cutoff = 0.01
+# os.chdir(r"E:\Script\test\BS2G")
 file_list = os.listdir(os.getcwd())
 
 

@@ -9,7 +9,8 @@ import os
 import re
 
 os.chdir(
-    r"C:\Users\Yong\Documents\pLink\pLink_task_2018.05.23.09.05.17_GST_buffer_screen_combine\reports")
+    r"C:\Users\Yong\Documents\pLink\pLink_task_2018.08.15.22.04.47_ams1\reports"
+)
 spec_cutoff = 1  # spectra number cut-off
 E_value_cutoff = 2
 
@@ -297,7 +298,7 @@ def statistic_report_file():
             raw_dic[raw_name] = [raw_name, last[i]]
         else:
             raw_dic[raw_name].append(last[i])
-    
+
     raw_list = list(raw_dic.keys())
     raw_list.sort()
     for raw in raw_list:

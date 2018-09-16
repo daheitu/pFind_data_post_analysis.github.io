@@ -1,11 +1,12 @@
 import os
 
-os.chdir(r"E:\MASS SEPTRA DATA\20170310\H1")
+os.chdir(r"G:\20180724\AR_ARGO2")
 modi_mass_range = [-10, 400]
 deta_ppm = 10
-noise_cutoff = 0.10
-feature_ion_mass_list = [147.1128, 244.1656, 391.2340]
+noise_cutoff = 0.05
+feature_ion_mass_list = [175.1189, 288.203,419.2435]
 
+ar_C_list = [175.1189, 288.203,419.2435]
 LK_7_list = [147.1128, 244.1656, 391.2340]
 gr_N_list = [175.1189, 246.1561, 317.1932, 388.2303]
 gr_C_list = [185.1285, 256.1656, 327.2027, 398.2398]

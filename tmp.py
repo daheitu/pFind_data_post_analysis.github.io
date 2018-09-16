@@ -1,63 +1,49 @@
 import os
 import re
-os.chdir(
-    r"C:\Users\Yong\Desktop\sgc\sheyang_list"
-)
-spec_cutoff = 2  # spectra number cut-off
-E_value_cutoff = 0.01
+
+path = r"C:\Users\Yong\Desktop\DISTANCE\Cal_Pdb_Distance\CNGP"
+XL_sites_list = ["R", "K"]
+os.chdir(path)
 
 
-def get_report_file_name():
-    path = os.getcwd()
-    path_d = os.path.dirname(path)
-    os.chdir(path_d)
-    file_list = os.listdir(path_d)
-    for fl in file_list:
-        if fl[-5:] == "plink":
-            para = open(fl).readlines()
-        else:
-            continue
-    for line in para:
-        if line[:10] == "spec_title":
-            spec_title = line.rstrip("\n").split("=")[1].strip()
-        elif line[:11] == "enzyme_name":
-            enzyme = line.rstrip("\n").split("=")[1].strip()
-        elif line[:7] == "linker1":
-            linker = line.rstrip("\n").split("=")[1].strip()
-        else:
-            continue
-    report_file_name = spec_title + "_" + enzyme + "_" + linker + ".txt"
-    os.chdir(path)
-    return report_file_name
-
-
-# print(get_report_file_name())
-
-
-def get_linked_site_inform(linked_site):
+def site_correct(linked_site):
     pos_list = re.findall("\((\d*)\)", linked_site)
     position1 = pos_list[0]
     position2 = pos_list[1]
-    p = linked_site.find("-")
+    p = linked_site.find(")-")
     m = linked_site.find("(" + position1 + ")-")
     n = linked_site.find("(" + position2 + ")", p)
-    protein1 = linked_site[:m].strip()
-    protein2 = linked_site[p + 1:n].strip()
-    if position1 == position2:
-        return "Self cross-link"
+    protein1 = linked_site[:m]
+    protein2 = linked_site[p + 2:n]
+
+    if protein1 != protein2:
+        link_type = "Inter"
     else:
-        if int(position1) < 500 and int(position2) > 900:
+        if abs(int(position1) - int(position2)) < 2:
             link_type = "Inter"
         else:
             link_type = "Intra"
-        return link_type
 
+    if int(position1) <= int(position2):
+        correc_site = linked_site
+    else:
+        a = linked_site.split(")-")[0] + ")"
+        b = linked_site.split(")-")[1]
+        correc_site = b + "-" + a
 
-f = open("list.txt", 'r').readlines()
-b = open("repo.csv", 'w')
-for line in f[0:]:
-    b.write(",".join([line.rstrip("\n"), get_linked_site_inform(line.rstrip("\n"))]))
-    b.write("\n")
+    return link_type
 
-b.close()
-print("done")
+c = open("judege_type.txt", 'w')
+f = open("list.txt").readlines()
+pair_list = []
+for line in f[1:]:
+    line_list = line.strip().split("\t")
+    if line_list[0].isdigit():
+        break
+    else:
+        pair_list.append(line_list[0])
+for pairs in pair_list:
+    c.write("\t".join([pairs, site_correct(pairs)]))
+    c.write("\n")
+
+c.close()

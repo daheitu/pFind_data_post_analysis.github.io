@@ -2,7 +2,7 @@ import os
 
 os.chdir(r"D:\Program Files (x86)\pFind_build_20170814\GMDSD")  # path
 file = r"pFind.protein"  # filename
-delta_mass = "295.12"  # mass 
+delta_mass = "295.12"  # mass
 
 
 report_file_name = "report_delta_mass_" + delta_mass + ".txt"

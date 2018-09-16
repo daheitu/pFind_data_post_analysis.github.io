@@ -1,8 +1,8 @@
 import os
 import re
 
-os.chdir(r"C:\Users\Yong\Documents\pLink\pLink_task_2018.04.09.20.53.15\reports")
-
+os.chdir(r"C:\Users\Yong\Desktop\xiNET")
+input_file = "DIFF_UP.txt"
 
 def get_linked_site_inform(linked_site):
     pos_list = re.findall("\((\d*)\)", linked_site)
@@ -26,7 +26,7 @@ def get_linked_site_inform(linked_site):
 def main():
     file_list = os.listdir(os.getcwd())
     for file in file_list:
-        if file[-4:] == ".txt" and "Trypsin" in file:
+        if input_file == file:
             f = open(file).readlines()
             rep_name = file[:-4]+"_xinet.csv"
             b = open(rep_name, "w")

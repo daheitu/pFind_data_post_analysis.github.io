@@ -42,7 +42,7 @@ def find_maxvaule_poistion(matrix):
     return poistion, max
 
 
-#计算动态规划矩阵
+# 计算动态规划矩阵
 def longest_common_subsequence(lhs, rhs):
     l_len = len(lhs)
     r_len = len(rhs)

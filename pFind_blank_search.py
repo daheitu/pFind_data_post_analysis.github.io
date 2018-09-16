@@ -1,5 +1,6 @@
 import os
-os.chdir(r"F:\ALL ArGO data\ArGO\optimize condition\Buffer screen\BSA\blank_ArGO")
+os.chdir(
+    r"F:\ALL ArGO data\ArGO\optimize condition\Buffer screen\BSA\blank_ArGO")
 spectra_cutoff = 4
 
 
@@ -51,11 +52,11 @@ def sort_str_digtal_list(list):
             new_list.append(int(char))
         else:
             new_list.append(float(char))
-    
+
     new_list.sort()
     for num in new_list:
         if len(str(num).split(".")[1]) == 1:
-            final_list.append(str(num)+"0")
+            final_list.append(str(num) + "0")
         else:
             final_list.append(str(num))
 

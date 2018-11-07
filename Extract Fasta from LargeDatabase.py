@@ -9,13 +9,13 @@ python Extract Fasta from LargeDatabase.py
 """
 
 import os
-FastaFile = "Other_S-Pombe_ASM294v2.29_2018-04-13_lldu_lab_con.fasta"
-new_fasta = "APE4_SP.fasta"
+FastaFile = "human_unitprot_contaminant.fasta"
+new_fasta = "Atg16.fasta"
 
 
 def Get_ProList_from_pBuildFile(filename):
     protein_list = []
-    Pro_list_simp = []
+    pro_simplify_list = []
     f = open(filename, 'r').readlines()
     for line in f[1:]:
         line_list = line.rstrip("\n").split("\t")
@@ -27,24 +27,24 @@ def Get_ProList_from_pBuildFile(filename):
             Subset_Pro_List = group.split("/")[:-1]
             protein_list += Subset_Pro_List
 
-    Pro_list_simp = []
+    pro_simplify_list = []
     for protein in protein_list:
-        if protein not in Pro_list_simp:
-            Pro_list_simp.append(protein)
-    return Pro_list_simp
+        if protein not in pro_simplify_list:
+            pro_simplify_list.append(protein)
+    return pro_simplify_list
 
 
-def Extract_protein(FastaName, namelist):
+def Extract_protein(FastaName, tgt_list):
     fasta = open(FastaName, 'r').readlines()
     b = open(new_fasta, "w")
     pro_up_pos = []
     pro_down_pos = []
-    pro_name_list = []
+    protein_total_list = []
     rev_pro = []
     for i in range(len(fasta)):
         if fasta[i][0] == '>':
             pro_up_pos.append(i)
-            pro_name_list.append(fasta[i][1:fasta[i].find(" ", 1)])
+            protein_total_list.append(fasta[i][1:fasta[i].find(" ", 1)])
 
     for j in range(1, len(pro_up_pos)):
         pro_down_pos.append(pro_up_pos[j] - 1)
@@ -52,13 +52,13 @@ def Extract_protein(FastaName, namelist):
     pro_down_pos.append(len(fasta) - 1)
     print(len(pro_up_pos), len(pro_down_pos))
 
-    for pro in namelist:
-        for k in range(len(pro_name_list)):
-            if pro_name_list[k] == pro:
+    for pro in tgt_list:
+        for k in range(len(protein_total_list)):
+            if protein_total_list[k] == pro:
                 for i in range(pro_up_pos[k], pro_down_pos[k] + 1):
                     b.write(fasta[i])
                 break
-            elif k == len(pro_name_list) - 1:
+            elif k == len(protein_total_list) - 1:
                 print(pro)
             else:
                 continue
@@ -67,9 +67,8 @@ def Extract_protein(FastaName, namelist):
 
 
 def main():
-    os.chdir(r"D:\workspace\pFindTask26_APE4\result\pBuild_tmp")
+    os.chdir(r"C:\Users\Yong\Desktop\lumos")
     FileName_list = os.listdir(os.getcwd())
-    fastfile = ""
     Total_Pro = []
     Total_Pro_simp = []
     for fl in FileName_list:

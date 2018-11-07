@@ -4,7 +4,7 @@ import re
 from numpy import *
 
 
-path = r"C:\Users\Yong\Desktop\DISTANCE\Cal_Pdb_Distance\CNGP"
+path = r"C:\Users\Yong\Desktop\xiNET"
 XL_sites_list = ["R", "K"]
 os.chdir(path)
 
@@ -282,7 +282,7 @@ def get_pdb_distance(cross_link_pair, PdbChain_To_ProName_dict,
 
 
 def main():
-    f = open("list.txt").readlines()
+    f = open("DIFF_UP.txt").readlines()
     pair_list = []
     for line in f[1:]:
         line_list = line.strip().split("\t")
@@ -291,7 +291,7 @@ def main():
         else:
             pair_list.append(line_list[0])
     
-    B = open("xlink_distance.txt", 'w')
+    B = open("xlink_distance_up.txt", 'w')
     file_list = os.listdir(os.getcwd())
     for fl in file_list:
         if fl[-6:] == ".fasta":
@@ -360,7 +360,7 @@ def main():
                     pym_cmd = obj_name + "," + selec1 + "," + selec2
                     all_dist_dic[site_1_chain[i], site_2_chain[j]] = [str(dis_pdb), pym_cmd]
                     all_distance.append(dis_pdb)
-            
+
             n = 0
             while n < len(all_distance):
                 if all_distance[n] == 0.00:
@@ -377,10 +377,9 @@ def main():
                     line_write.extend(all_dist_dic[key])
         else:
             line_write = [pairs, "no Stru"]    
-        
+
         B.write("\t".join(line_write))
         B.write("\n")
-        
 
     B.close()
 

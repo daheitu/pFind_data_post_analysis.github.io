@@ -5,7 +5,10 @@ os.chdir(
 )
 file_list = os.listdir(os.getcwd())
 
-protein_list = ["Nop10 ", "Cbf5 ", "Gar1 ", "Nhp2 ", "lysozyme", "BSA", "GST", "lactoferrin", "PUD1", "PUD2", "Aldolase"]
+protein_list = [
+    "Nop10 ", "Cbf5 ", "Gar1 ", "Nhp2 ", "lysozyme", "BSA", "GST",
+    "lactoferrin", "PUD1", "PUD2", "Aldolase"
+]
 
 
 def judge_sites(linked_site):
@@ -23,7 +26,6 @@ def judge_sites(linked_site):
         return False
 
 
-
 for file in file_list:
     if "cross-linked_peptides" in file:
         print(file)
@@ -38,14 +40,14 @@ for file in file_list:
             if line_list[0].isdigit():
                 pep = line_list[1]
                 link_site = line_list[4]
-                p = n+1
+                p = n + 1
             else:
                 print(n)
             number_0dot1 = 0
             while p < len(f) and f[p].rstrip("\n").split(",")[0] == "":
                 number_0dot1 += 1
                 p += 1
-            
+
             if pep not in pep_dic:
                 pep_dic[pep] = [pep, link_site, str(number_0dot1)]
             else:
@@ -54,9 +56,9 @@ for file in file_list:
         b = open("pep_report.txt", "w")
         num_0dot1 = 0
         num_0dot2 = 0
-        for key in pep_dic:         
+        for key in pep_dic:
             if judge_sites(pep_dic[key][1][:-1]):
-                if int(pep_dic[key][2]) > 1 :
+                if int(pep_dic[key][2]) > 1:
                     b.write("\t".join(pep_dic[key]))
                     b.write("\n")
                     num_0dot1 += 1

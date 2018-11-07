@@ -4,7 +4,7 @@ import re
 from numpy import *
 
 
-path = r"C:\Users\Yong\Desktop\xiNET"
+path = r"G:\DSSO_1008\structure"
 XL_sites_list = ["R", "K"]
 os.chdir(path)
 
@@ -282,7 +282,7 @@ def get_pdb_distance(cross_link_pair, PdbChain_To_ProName_dict,
 
 
 def main():
-    f = open("DIFF_UP.txt").readlines()
+    f = open("DSS.txt").readlines()
     pair_list = []
     for line in f[1:]:
         line_list = line.strip().split("\t")
@@ -291,7 +291,7 @@ def main():
         else:
             pair_list.append(line_list[0])
     
-    B = open("xlink_distance_up.txt", 'w')
+    B = open("DSS_DISTANCE.txt", 'w')
     file_list = os.listdir(os.getcwd())
     for fl in file_list:
         if fl[-6:] == ".fasta":

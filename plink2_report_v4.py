@@ -1,4 +1,4 @@
-# coding: UTF-8
+# coding: utf-8
 """
 Created on Mon Aug 15 10:38:11 2017
 @author: CaoYong
@@ -9,7 +9,7 @@ import os
 import re
 
 os.chdir(
-    r"C:\Users\Yong\Documents\pLink\pLink_task_2018.11.02.11.11.05\reports"
+    r"C:\Users\Yong\Documents\pLink\pLink_task_2018.11.07.10.52.00\reports"
 )
 spec_cutoff = 0  # spectra number cut-off
 Best_evalue_cutoff = 2
@@ -71,22 +71,25 @@ def get_report_file_name():
     path = os.getcwd()
     path_d = os.path.dirname(path)
     os.chdir(path_d)
+    print(path_d)
     file_list = os.listdir(path_d)
     for fl in file_list:
         if fl[-5:] in ["pfind", "plink"]:
             para = open(fl).readlines()
+            for line in para:
+                if line[:10] == "spec_title":
+                    print(line)
+                    spec_title = line.rstrip("\n").split("=")[1].strip()
+                elif line[:11] == "enzyme_name":
+                    enzyme = line.rstrip("\n").split("=")[1].strip()
+                elif line[:7] == "linker1":
+                    linker = line.rstrip("\n").split("=")[1].strip()
+                else:
+                    continue
         else:
             continue
-    for line in para:
-        if line[:10] == "spec_title":
-            spec_title = line.rstrip("\n").split("=")[1].strip()
-        elif line[:11] == "enzyme_name":
-            enzyme = line.rstrip("\n").split("=")[1].strip()
-        elif line[:7] == "linker1":
-            linker = line.rstrip("\n").split("=")[1].strip()
-        else:
-            continue
-    report_file_name = spec_title + "_" + enzyme + "_" + linker + "v3.txt"
+
+    report_file_name = spec_title + "_" + enzyme + "_" + linker + "v4.txt"
     os.chdir(path)
     return report_file_name
 
@@ -240,7 +243,7 @@ def main():
             best_svm_score = f[p].rstrip("\n").split(",")[9]
             pep_std = f[p].rstrip("\n").split(",")[5]
             while p < len(f) and f[p].rstrip("\n").split(",")[0] == "":
-                line_list = f[p].rstrip("\n").split(",")                
+                line_list = f[p].rstrip("\n").split(",")
                 evalue = line_list[8]
                 if float(evalue) < E_value_cutoff_SpecLvl:
                     raw_name = line_list[2][:line_list[2].find(".")]
@@ -249,7 +252,7 @@ def main():
                         spec_dic[raw_name] = 1
                     else:
                         spec_dic[raw_name] += 1
-    
+
                     if raw_name not in pep_dic:
                         pep_dic[raw_name] = [pep]
                     else:
@@ -257,7 +260,7 @@ def main():
                             pep_dic[raw_name].append(pep)
                         else:
                             pass
-    
+
                     if raw_name not in evalue_dic:
                         evalue_dic[raw_name] = float(evalue)
                     else:
@@ -268,7 +271,7 @@ def main():
                 else:
                     pass
                 p += 1
-            
+
             total_spec = 0
             min_evalue = 1
             for key in evalue_dic:

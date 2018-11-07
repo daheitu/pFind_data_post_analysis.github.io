@@ -3,7 +3,7 @@ import re
 
 spec_cutoff = 2
 evaule_cutoff = 0.01
-os.chdir(r"C:\Users\Yong\Desktop\results")
+os.chdir(r"G:\DSSO_1008\results")
 
 # file_list = os.listdir(os.getcwd())
 

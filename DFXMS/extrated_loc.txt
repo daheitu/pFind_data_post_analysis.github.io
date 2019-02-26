@@ -1,0 +1,55 @@
+P04816	 Periplasm
+P0AD96	 Periplasm
+P37902	 Periplasm {ECO:0000269|PubMed:1091635}
+P76116	
+P39172	 Periplasm
+P45523	 Periplasm
+P0AB24	 Periplasm {ECO:0000269|PubMed:16551627}
+P0AEU0	 Periplasm
+P0AEQ3	 Periplasm {ECO:0000305|PubMed:3027504}
+P0AEM9	 Periplasm
+P23843	 Periplasm
+P23847	 Periplasm
+P76344	 Cytoplasm {ECO:0000269|PubMed:12480884}
+P09551	 Periplasm
+P0AFH8	 Periplasm
+P30859	 Periplasm {ECO:0000269|PubMed:8801422}
+P30860	 Periplasm {ECO:0000269|PubMed:8801422}
+P02925	 Periplasm {ECO:0000269|PubMed:1583688}
+P16700	 Periplasm
+P76177	
+P0ABZ6	 Periplasm. Note=Is capable of associatin
+P0AAX8	 Periplasm
+P0AFK9	 Periplasm {ECO:0000269|PubMed:1939142}
+P0ADS9	
+P08331	 Periplasm {ECO:0000269|PubMed:3005231}
+P77214	 Periplasm
+P0ADV7	 Periplasm {ECO:0000305|PubMed:19383799}
+P0AFL3	 Periplasm
+P76002	 Periplasm {ECO:0000269|PubMed:20734102}
+P61316	 Periplasm
+P0A8X2	 Periplasm {ECO:0000305}
+P0AEG6	 Periplasm {ECO:0000269|PubMed:8168498}
+P0ADX7	
+P60422	
+P0AGD1	 Periplasm
+P0AEU7	 Periplasm {ECO:0000269|PubMed:1838129
+P31133	 Periplasm {ECO:0000269|PubMed:8416922}
+P0AG55	
+P75694	 Periplasm {ECO:0000305}
+P0AFM2	 Periplasm {ECO:0000269|PubMed:3305496
+P77754	 Periplasm {ECO:0000269|PubMed:21317898
+P0A7W1	
+P04949	 Secreted. Bacterial flagellum
+P0AG82	 Periplasm
+P0CE47	 Cytoplasm. Cell inner membrane; Periphera
+P0CE48	 Cytoplasm. Cell inner membrane; Periphera
+P0A7V8	
+P0AG80	 Periplasm
+Q47537	 Periplasm {ECO:0000305}
+P45955	 Periplasm {ECO:0000255|HAMAP-Rule:MF_02066
+P0AEG4	 Periplasm
+P23857	 Periplasm {ECO:0000269|PubMed:1712397}
+P19926	 Periplasm
+P33362	 Periplasm {ECO:0000305}
+P0AG78	 Periplasm

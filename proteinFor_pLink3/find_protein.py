@@ -30,7 +30,7 @@ for pair in pCFH:
 #print(site_list)
 site_list.sort()
 # print(site_list)
-for i in range(len(site_list)-1):
+for i in range(len(site_list)-1):          
     if site_list[i+1] - site_list[i] < 6:
         if [str(site_list[i]), str(site_list[i+1])] not in pCFH:
             print(site_list[i+1], site_list[i])
@@ -42,5 +42,5 @@ for i in range(len(site_list)-1):
                 if str(site_list[i+1]) in pair:
                     print(pair)
                     write_list.append(str(pair))
-        b.write(",".join(write_list)+"\n")
+        b.write("\t".join(write_list)+"\n")
 b.close()

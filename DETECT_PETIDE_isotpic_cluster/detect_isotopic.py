@@ -4,16 +4,9 @@ from read_spec_from_mgf import read_spec
 from delta_ppm import generate_mass_range
 
 
-mgf_info = read_spec("./test_spec.mgf")
-print(mgf_info)
-b = open("report.txt", 'w')
-cg_delta_dic = {1: 1, 2: 0.5, 3: 0.33333, 4: 0.25, 5: 0.2}
-delta_cg_dic = {1:1, 0.5: 2, 0.3333: 3, 0.25:4, 0.2:5}
-chr_list = [1, 2, 3, 4, 5]
-delta_iso_list = list(cg_delta_dic.values())
 
 
-def find_cert_mz(mz, ms2_ms_list, begin_idx, tol_ppm):
+def findOneMZ(mz, ms2_ms_list, begin_idx, tol_ppm):
     k = begin_idx + 1
     [low_ms, up_ms] = generate_mass_range(mz, tol_ppm)
     if ms2_ms_list[-1] < low_ms:
@@ -26,13 +19,14 @@ def find_cert_mz(mz, ms2_ms_list, begin_idx, tol_ppm):
                 return True, k
             else:
                 k += 1
-# a = [546.5873, 584.9302, 623.2737, 686.6615, 717.3005, 722.9763, 728.9789, 760.6715, 762.0266, 842.0547]
-# print(find_cert_mz(762.0266+32, a, 8, 30))
 
 
-def detect_iso(ms2_dic):
+def detectIsotopic(ms2_dic):
+    cg_delta_dic = {1: 1, 2: 0.5, 3: 0.33333, 4: 0.25, 5: 0.2}
+    # delta_cg_dic = {1:1, 0.5: 2, 0.3333: 3, 0.25:4, 0.2:5}
+    chr_list = [1, 2, 3, 4, 5]
+    delta_iso_list = list(cg_delta_dic.values())
     ms2_info_list = sorted(ms2_dic.items(), key=lambda d:d[1], reverse = True)
-    #print(ms2_info_list)
     ms2_ms_list = list(ms2_dic.keys())
     ms2_ms_list.sort()
     chged_iso_dic = {}
@@ -42,7 +36,7 @@ def detect_iso(ms2_dic):
         mz = ms2_info_list[i][0]
         mz_idx = ms2_ms_list.index(mz)
         idx = mz_idx + 1
-        b.write("\t".join([str(mz), str(mz_idx)])+"\n")
+        # fileToWrite.write("\t".join([str(mz), str(mz_idx)])+"\n")
         if mz_idx > len(ms2_ms_list)-2:
             i += 1
         else:
@@ -59,13 +53,13 @@ def detect_iso(ms2_dic):
                     if ms2_ms_list[idx] > low_ms and ms2_ms_list[idx] < up_ms:                    
                         chrg = chr_list[min_delta_idx]
                         interval = delta_iso_list[min_delta_idx]
-                        [match_bool, pos] = find_cert_mz(float(mz)+interval*2, ms2_ms_list, idx, 20)
+                        [match_bool, pos] = findOneMZ(float(mz)+interval*2, ms2_ms_list, idx, 20)
                         if match_bool:
                             find_bool = True
                             iso_cluster = [mz, ms2_ms_list[idx], ms2_ms_list[pos]]
                             m = 3
                             while m < 6:
-                                [match_bool, pos] = find_cert_mz(float(mz)+interval*m, ms2_ms_list, idx, 20)
+                                [match_bool, pos] = findOneMZ(float(mz)+interval*m, ms2_ms_list, idx, 20)
                                 if match_bool:
                                     iso_cluster.append(ms2_ms_list[pos])
                                     m += 1
@@ -73,7 +67,7 @@ def detect_iso(ms2_dic):
                                     break
                             if mz * chrg > 1600:
                                 for n in range(1,4):
-                                    [match_bool, pos] = find_cert_mz(float(mz)-interval*n, ms2_ms_list, idx-10, 20)
+                                    [match_bool, pos] = findOneMZ(float(mz)-interval*n, ms2_ms_list, idx-10, 20)
                                     if match_bool:
                                         if ms2_dic[ms2_ms_list[pos]]/ms2_dic[iso_cluster[0]] > 0.3:
                                             iso_cluster.insert(0, ms2_ms_list[pos])
@@ -88,9 +82,7 @@ def detect_iso(ms2_dic):
                             for peak in iso_cluster:
                                 ms2_ms_list.remove(peak)
                                 ms2_info_list.remove((peak, ms2_dic[peak]))
-                            # print(ms2_ms_list)
-                            # print(ms2_info_list)
-                            b.writelines([str(ele) for ele in ms2_info_list])
+                            # fileToWrite.writelines([str(ele) for ele in ms2_info_list])
                         else:
                             idx += 1
                     else:
@@ -99,7 +91,7 @@ def detect_iso(ms2_dic):
                 i = i
             else:
                 i += 1 
-    b.writelines([str(ele) for ele in ms2_info_list])                    
+    # fileToWrite.writelines([str(ele) for ele in ms2_info_list])                    
     return chged_iso_dic
 
 
@@ -123,7 +115,7 @@ def pair_with_Delta_mass(chged_iso_dic, tol_ppm, delta_mass):
             mz = bms_list[i]
             ther_pair_mz = mz + delta_mz
 
-            [fd_bool, pos] = find_cert_mz(ther_pair_mz, bms_list, i, tol_ppm)
+            [fd_bool, pos] = findOneMZ(ther_pair_mz, bms_list, i, tol_ppm)
             if fd_bool:
                 if chrg not in ft_pair_dic:
                     ft_pair_dic[chrg] = [(bms_list[i], bms_list[pos])]
@@ -142,9 +134,16 @@ def pair_with_Delta_mass(chged_iso_dic, tol_ppm, delta_mass):
     return ft_pair_dic, chr_ms_left_dic
 
 
-for ttl in mgf_info:
-    ms2_dic = mgf_info[ttl]
-    chged_iso_dic = detect_iso(ms2_dic)
-    ft_pair_dic, chr_ms_left_dic = pair_with_Delta_mass(chged_iso_dic, 30, 32)
-    print(ft_pair_dic)
-    print(chr_ms_left_dic)
+def main():
+    mgf_info = read_spec("./test1.mgf")
+    print(mgf_info)
+    # b = open("report.txt", 'w')
+    for ttl in mgf_info:
+        ms2_dic = mgf_info[ttl]
+        chged_iso_dic = detectIsotopic(ms2_dic)
+        print(chged_iso_dic)
+        # ft_pair_dic, chr_ms_left_dic = pair_with_Delta_mass(chged_iso_dic, 30, 32)
+    
+
+if __name__ == "__main__":
+    main()

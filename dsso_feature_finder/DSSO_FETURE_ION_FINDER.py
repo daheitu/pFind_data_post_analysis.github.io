@@ -1,6 +1,6 @@
 import os
 
-# os.chdir(r"G:\DSSO_1008\CID_BASED_Methods\pparse")
+os.chdir(r"D:\Onedriver\OneDrive\github\pFind_data_post_analysis.github.io\DETECT_PETIDE_isotpic_cluster")
 
 
 def generate_ion_mass_range(num, tol):

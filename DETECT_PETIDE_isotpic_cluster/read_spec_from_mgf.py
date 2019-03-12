@@ -3,7 +3,7 @@ def read_spec(mgf_file):
     f = open(mgf_file, 'r').readlines()
     i = 0
     while i < len(f):
-        print("current is " + str(i))
+        # print("current is " + str(i))
         if f[i].strip() == "BEGIN IONS":
             # begin_idx = i
             # total_spec += 1

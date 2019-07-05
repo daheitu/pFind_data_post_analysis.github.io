@@ -1,7 +1,7 @@
 # import os
 
-mass_find = -1
-delta_ppm = 100000
+mass_find = 156.078638
+delta_ppm = 1000
 
 
 def generate_ion_mass_range(num):
@@ -9,7 +9,7 @@ def generate_ion_mass_range(num):
     return num - deta, num + deta
 
 
-f = open(r"D:\Program Files\pFind3\bin\modification.ini", 'r').readlines()
+f = open(r"C:\Users\Administrator\Documents\modification.ini", 'r').readlines()
 modifi_dic = {}
 for line in f[1:]:
     if "name" not in line and "=" in line:

@@ -9,7 +9,7 @@ import os
 import re
 
 os.chdir(
-    r"C:\Users\Yong\Documents\pLink\pLink_task_2019.01.20.11.50.18\reports"
+    r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.07.03.15.20.56\reports"
 )
 spec_cutoff = 0  # spectra number cut-off
 Best_evalue_cutoff = 2

@@ -345,22 +345,18 @@ def main():
         if len(site_1_chain) and len(site_2_chain):
             all_distance = []
             all_dist_dic = {}
+            jwalkCMDlist = []
             for i in range(len(site_1_chain)):
-                chain1 = site_1_chain[i][0]
-                site1 = site_1_chain[i][1]
+                chain1, site1 = site_1_chain[i]
                 ori_sit1 = int(site1) + Delta_PdbNum_To_FastaNum[chain1]
                 for j in range(len(site_2_chain)):            
-                    chain2 = site_2_chain[j][0]
-                    site2 = site_2_chain[j][1]
+                    chain2, site2 = site_2_chain[j]
                     ori_site2 = int(site2) + Delta_PdbNum_To_FastaNum[chain2]
-                    dis_pdb = cal_pdb_dis(chain1, site1, chain2, site2, pdb)
-                    obj_name = "dist " + chain1 + str(ori_sit1) + "_" + chain2 + str(ori_site2)
-                    selec1 = " /" + pdb_name + "//" + chain1 + "/" + str(site1) + "/"+"CA"
-                    selec2 = " /" + pdb_name + "//" + chain2 + "/" + str(site2) + "/"+"CA"
-                    pym_cmd = obj_name + "," + selec1 + "," + selec2
-                    all_dist_dic[site_1_chain[i], site_2_chain[j]] = [str(dis_pdb), pym_cmd]
-                    all_distance.append(dis_pdb)
-
+                    dis_pdb_ED = cal_pdb_dis(chain1, site1, chain2, site2, pdb)
+                    all_distance.append(dis_pdb_ED)
+                    jwalkCMD = "|".join([site1,chain1, site2, chain2, ""])
+                    jwalkCMDlist.append(jwalkCMD)
+                    all_dist_dic[site_1_chain[i], site_2_chain[j]] = [str(dis_pdb), jwalk_position]
             n = 0
             while n < len(all_distance):
                 if all_distance[n] == 0.00:

@@ -4,11 +4,11 @@ import re
 from numpy import *
 
 
-path = r"G:\DSSO_1008\structure"
+path = r"D:\E\Collabaration\KArGO\figures\table\S3"
 XL_sites_list = ["R", "K"]
 os.chdir(path)
-input_file = "DSS.txt"
-output_file = "test.txt"
+input_file = "ALPK1.txt"
+output_file = input_file + "_out.txt"
 
 
 AA_dict = dict(
@@ -21,7 +21,7 @@ AA_dict = dict(
     GLN="Q", ASP="D", GLU='E')
 
 
-def get_linked_site_inform(linked_site):
+def getLinkedSiteInfo(linked_site):
     pos_list = re.findall("\((\d*)\)", linked_site)
     position1 = pos_list[0]
     position2 = pos_list[1]
@@ -106,188 +106,200 @@ def print_longest_common_subsequence(lhs, rhs):
     return rst
 
 
+def findCAcoord(chain_a, num1, pdb):
+    for line in pdb:
+        if line[:4] == "ATOM" and str(line[13:15]) == 'CA':
+            if str(line[21]) == chain_a and int(line[22:26]) == num1:
+                x_1 = float(line[30:38])
+                y_1 = float(line[38:46])
+                z_1 = float(line[46:54])
+    return x_1, y_1, z_1
+
+
 def cal_pdb_dis(chain_a, num1, chain_b, num2, pdb):
-    x_1 = 0
-    x_2 = 0
-    y_1 = 0
-    y_2 = 0
-    z_1 = 0
-    z_2 = 0
-    for i in range(len(pdb)):
-        if pdb[i][:4] == "ATOM" and str(pdb[i][13:15]) == 'CA':
-            if str(pdb[i][21]) == chain_a and int(pdb[i][22:26]) == num1:
-                x_1 = float(pdb[i][30:38])
-                y_1 = float(pdb[i][38:46])
-                z_1 = float(pdb[i][46:54])
-    for i in range(len(pdb)):
-        if pdb[i][:4] == "ATOM" and str(pdb[i][13:15]) == 'CA':
-            if str(pdb[i][21]) == chain_b and int(pdb[i][22:26]) == num2:
-                x_2 = float(pdb[i][30:38])
-                y_2 = float(pdb[i][38:46])
-                z_2 = float(pdb[i][46:54])
-    sd = (x_2 - x_1) * (x_2 - x_1) + (y_2 - y_1) * (y_2 - y_1) + (
-        z_2 - z_1) * (z_2 - z_1)
+    xA, yA, zA = findCAcoord(chain_a, num1, pdb)
+    xB, yB, zB = findCAcoord(chain_b, num2, pdb)
+    sd = (xA - xB) ** 2 + (yA - yB) ** 2 + (zA - zB) ** 2
     return round(math.sqrt(sd), 2)
 
 
 def pretreatment_fasta(fasta):
     FastaDic = {}
     Pro_position_list = []
-    for line in fasta:
-        if line[0] == ">":
-            Pro_position_list.append(fasta.index(line))
-    Pro_position_list.append(len(fasta))
-
-    for position in Pro_position_list:
-        if position == len(fasta):
-            pass
+    i = 0 
+    while i < len(fasta):
+        if fasta[i][0] != ">":
+            i += 1
         else:
-            Pro_line = fasta[position].rstrip("\n")
-            if " " in Pro_line:
-                Pro_name = Pro_line[1:Pro_line.find(" ")]
+            proLine = fasta[i]
+            if " " in proLine:
+                proName = proLine[1:proLine.find(" ")]
             else:
-                Pro_name = Pro_line[1:]
+                proName = proLine[1:-1]
+            seq = ""
+            p = i + 1
+            while p < len(fasta):
+                if fasta[p][0] == ">":
+                    break
+                else:
+                    seq += fasta[p].strip()
+                p += 1
 
-            fasta_seq = ""
-            for i in range(
-                    position + 1,
-                    Pro_position_list[Pro_position_list.index(position) + 1]):
-                fasta_seq += fasta[i].strip()
-
-            FastaDic[Pro_name] = fasta_seq
+            FastaDic[proName] = seq
+            i = p
     return FastaDic
 
 
 def pretreatment_pdb(pdb):
     pdb_chains = []
     for line in pdb:
-        if line[0:6] == "SEQRES":
-            pdb_chains.append(line[11:13])
-        pdb_chains = list(set(pdb_chains))
-        for chain in pdb_chains:
-            pdb_chains[pdb_chains.index(chain)] = chain.rstrip()
+        if line[0:6] == "ATOM  ":
+            chain = line[21].strip()
+            if chain not in pdb_chains:
+                pdb_chains.append(chain)
+        else:
+            continue
 
-    pdb_chain_To_seq_dic = {}
+    pdbChainToSeqDic = {}
     for chain in pdb_chains:
-        vars()["chain" + chain + "_seq_list"] = []
+        pdbChainToSeqDic[chain] = []
         for line in pdb:
             if line[:6] == "SEQRES" and line[11] == chain:
                 sequence = line[19:len(line) - 1].strip()
                 if len(sequence) == 3:
-                    vars()["chain" + chain + "_seq_list"].append(
+                    pdbChainToSeqDic[chain].append(
                         AA_dict[sequence])
                 else:
-                    seq_length = len(sequence.split(" "))
-                    for i in range(seq_length):
-                        vars()["chain" + chain + "_seq_list"].append(
-                            AA_dict[sequence.split(" ")[i]])
+                    aaList = sequence.split(" ")
+                    for aa3 in aaList:
+                        pdbChainToSeqDic[chain].append(AA_dict[aa3])
             elif line[:4] == "ATOM":
                 break
-        pdb_chain_To_seq_dic[chain] = "".join(
-            vars()["chain" + chain + "_seq_list"])
+        pdbChainToSeqDic[chain] = "".join(pdbChainToSeqDic[chain])
 
-    structuredCA_To_chain_dic = {}
+    strucCAToChainDic = {}
     for chain in pdb_chains:
         positionCA_To_Num = {}
         for line in pdb:
-            if line[:4] == "ATOM" and line[21] == chain and line[13:
-                                                                 15] == "CA":
-                structured_CA_number = int(line[22:26])
-                positionCA_To_Num[structured_CA_number] = AA_dict[line[17:20]]
+            if line[:4] == "ATOM":
+                if line[21] == chain and line[13:15] == "CA":
+                    struc_CA_num = int(line[22:26])
+                    positionCA_To_Num[struc_CA_num] = AA_dict[line[17:20]]
 
-        structuredCA_To_chain_dic[chain] = positionCA_To_Num
+        strucCAToChainDic[chain] = positionCA_To_Num
 
-    structuredChain_To_seq = {}
+    structChainToSeq = {}
     for chain in pdb_chains:
-        structuredChain_To_seq[chain] = "".join(
-            structuredCA_To_chain_dic[chain].values())
+        structChainToSeq[chain] = "".join(list(strucCAToChainDic[chain].values()))
 
-    return pdb_chains, pdb_chain_To_seq_dic, structuredCA_To_chain_dic, structuredChain_To_seq
+    return pdb_chains, pdbChainToSeqDic, strucCAToChainDic, structChainToSeq
 
 
-def get_fasta_pdb_infor(fasta, pdb):
+def correlateFastaPdb(fasta, pdb):
     FastaDic = pretreatment_fasta(fasta)
     pdb_chains = pretreatment_pdb(pdb)[0]
-    pdb_chain_To_seq_dic = pretreatment_pdb(pdb)[1]
-    structuredCA_To_chain_dic = pretreatment_pdb(pdb)[2]
-    structuredChain_To_seq = pretreatment_pdb(pdb)[3]
-
-    PdbChain_To_ProName_dict = {}
-    for chain in pdb_chain_To_seq_dic:
+    chainToSeqInpdbDic = pretreatment_pdb(pdb)[1]
+    structCAtoChainDic = pretreatment_pdb(pdb)[2]
+    structChainToSeq = pretreatment_pdb(pdb)[3]
+    print(FastaDic, pdb_chains)
+    structCAtoChainDic
+    chainInpdbToPronameDic = {}
+    for chain in chainToSeqInpdbDic:
         for name in FastaDic:
             overlap = "".join(
                 print_longest_common_subsequence(FastaDic[name],
-                                                 pdb_chain_To_seq_dic[chain]))
-            if len(overlap) > len(pdb_chain_To_seq_dic[chain]) * 0.8 and len(
+                                                 chainToSeqInpdbDic[chain]))
+            if len(overlap) > len(chainToSeqInpdbDic[chain]) * 0.8 and len(
                     overlap) > len(FastaDic[name]) * 0.4:
-                PdbChain_To_ProName_dict[chain] = name
+                chainInpdbToPronameDic[chain] = name
 
-    Delta_PdbNum_To_FastaNum = {}
+    deltaPdbNumToFastaNum = {}
     for chain in pdb_chains:
-        pdb_seq = structuredChain_To_seq[chain]  # 有结构的PDB 的序列
-        fasta_seq = FastaDic[PdbChain_To_ProName_dict[chain]]  # fasta 序列
+        pdb_seq = structChainToSeq[chain]  # 有结构的PDB 的序列
+        fasta_seq = FastaDic[chainInpdbToPronameDic[chain]]  # fasta 序列
         MaxSubstr_fastaTOpdb = print_longest_over_substrate(pdb_seq, fasta_seq)
         Substr_index_in_fasta = fasta_seq.index(MaxSubstr_fastaTOpdb)
         Substr_index_in_pdb = pdb_seq.index(MaxSubstr_fastaTOpdb)
         Substr_SeriesNum_in_Pdb = list(
-            structuredCA_To_chain_dic[chain].keys())[Substr_index_in_pdb]
+            structCAtoChainDic[chain].keys())[Substr_index_in_pdb]
         Delta = Substr_index_in_fasta + 1 - Substr_SeriesNum_in_Pdb
-        Delta_PdbNum_To_FastaNum[chain] = Delta
+        deltaPdbNumToFastaNum[chain] = Delta
 
-    return PdbChain_To_ProName_dict, Delta_PdbNum_To_FastaNum
+    return chainInpdbToPronameDic, deltaPdbNumToFastaNum
 
 
-def get_pdb_distance(cross_link_pair, PdbChain_To_ProName_dict,
-                     Delta_PdbNum_To_FastaNum, structuredCA_To_chain_dic, pdb):
-    protein1, protein2, position1, position2 = get_linked_site_inform(
-        cross_link_pair)
-    site_1_chain = []
-    site_2_chain = []
-    for chain in PdbChain_To_ProName_dict:
-        if PdbChain_To_ProName_dict[chain] == protein1:
-            Correct_Posi1 = int(position1) - Delta_PdbNum_To_FastaNum[chain]
-            if Correct_Posi1 in structuredCA_To_chain_dic[chain]:
-                if structuredCA_To_chain_dic[chain][Correct_Posi1] in XL_sites_list:
-                    site_1_chain.append((chain, Correct_Posi1))
-                else:
-                    return "not cross-linked AA"
-            else:
-                return "No struc info"
-
-        if PdbChain_To_ProName_dict[chain] == protein2:
-            Correct_Posi2 = int(position2) - Delta_PdbNum_To_FastaNum[chain]
-            if Correct_Posi2 in structuredCA_To_chain_dic[chain]:
-                if structuredCA_To_chain_dic[chain][Correct_Posi2] in XL_sites_list:
-                    site_2_chain.append((chain, Correct_Posi2))
-                else:
-                    return "not cross-linked AA"
-            else:
-                return "No struc info"
+def calPdbDistance(linkXpair, chainInpdbToPronameDic,
+                     deltaPdbNumToFastaNum, structCAtoChainDic, pdb):
+    ptn1, ptn2, pos1, pos2 = getLinkedSiteInfo(linkXpair)
+    chaProN = chainInpdbToPronameDic
+    deltaPdbFasta = deltaPdbNumToFastaNum
+    strCaCha = structCAtoChainDic
+    site_1_chain = calSiteToPdbPos(ptn1, pos1, chaProN, deltaPdbFasta, strCaCha)
+    site_2_chain = calSiteToPdbPos(ptn2, pos2,  chaProN, deltaPdbFasta, strCaCha)
     print(site_1_chain, site_2_chain)
     if len(site_1_chain) and len(site_2_chain):
         all_distance = []
-        all_distance_dic = {}
+        all_dist_dic = {}
         for i in range(len(site_1_chain)):
-            for j in range(len(site_2_chain)):
-                all_distance_dic[
-                    site_1_chain[i], site_2_chain[j]] = cal_pdb_dis(
-                        site_1_chain[i][0], site_1_chain[i][1],
-                        site_2_chain[j][0], site_2_chain[j][1], pdb)
-        all_distance = list(all_distance_dic.values())
-        if len(all_distance) == 1:
-            return round(min(all_distance), 2)
+            chain1, site1 = site_1_chain[i]
+            for j in range(len(site_2_chain)):            
+                chain2, site2 = site_2_chain[j]
+                dis_pdb = cal_pdb_dis(chain1, site1, chain2, site2, pdb)
+                all_dist_dic[site_1_chain[i], site_2_chain[j]] = [str(dis_pdb)]
+                all_distance.append(dis_pdb)
+        
+        all_distance = delEleFromList(all_distance, 0.00)
+        if all_distance == []:
+            min_dis = "Self_XL"
         else:
-            while min(all_distance) == 0.0:
-                all_distance.remove(0.0)
-            return round(min(all_distance), 2)
+            min_dis = str(min(all_distance))
+        return min_dis
     else:
-        return "no structure information"
+        return "No_Stru"
+
+
+def calSiteToPdbPos(ptn1, pos1, chainInpdbToPronameDic, deltaPdbNumToFastaNum, structCAtoChainDic):
+    site_1_chain = []
+    chain_list = list(chainInpdbToPronameDic.keys())
+    chain_list.sort()
+    for chain in chain_list:
+        if chainInpdbToPronameDic[chain] == ptn1:
+            pdb_Posi1 = int(pos1) - deltaPdbNumToFastaNum[chain]
+            if pdb_Posi1 in structCAtoChainDic[chain]:
+                if structCAtoChainDic[chain][pdb_Posi1] in XL_sites_list:
+                    site_1_chain.append((chain, pdb_Posi1))
+
+    return site_1_chain
+
+
+def delEleFromList(eList, ele):
+    if ele not in eList:
+        return eList
+    else:
+        n = 0
+        while n < len(eList):
+            if eList[n] == ele:
+                del eList[n]
+            else:
+                n += 1
+        return eList
+
+
+def geneXLjwalkCMD():
+    f = open(output_file, 'r').readlines()
+    c = open(output_file + "_jwalk", 'w')
+    for line in f:
+        lineList = line.split("\t")
+        jwalkCMD = lineList[-1]
+        if jwalkCMD.strip() != "No_Stru":
+            c.write(jwalkCMD)
+    c.close()
 
 
 def main():
     f = open(input_file, 'r').readlines()
     pair_list = []
-    for line in f[1:]:
+    for line in f:
         line_list = line.strip().split("\t")
         if line_list[0].isdigit():
             break
@@ -295,8 +307,8 @@ def main():
             pair_list.append(line_list[0])
     
     B = open(output_file, 'w')
-    file_list = os.listdir(os.getcwd())
-    for fl in file_list:
+    flList = os.listdir(os.getcwd())
+    for fl in flList:
         if fl[-6:] == ".fasta":
             fasta = open(fl, 'r').readlines()
             print("The fasta file is " + fl)
@@ -307,72 +319,36 @@ def main():
         else:
             continue
 
-    PdbChain_To_ProName_dict = get_fasta_pdb_infor(fasta, pdb)[0]
-    Delta_PdbNum_To_FastaNum = get_fasta_pdb_infor(fasta, pdb)[1]
-    structuredCA_To_chain_dic = pretreatment_pdb(pdb)[2]
-    print(PdbChain_To_ProName_dict)
-    print(Delta_PdbNum_To_FastaNum)
+    chainInpdbToPronameDic = correlateFastaPdb(fasta, pdb)[0]
+    deltaPdbNumToFastaNum = correlateFastaPdb(fasta, pdb)[1]
+    structCAtoChainDic = pretreatment_pdb(pdb)[2]
+    print(chainInpdbToPronameDic)
+    print(deltaPdbNumToFastaNum)
     for pairs in pair_list:
-        ptn1, ptn2, pos1, pos2 = get_linked_site_inform(pairs)
-        site_1_chain = []
-        site_2_chain = []
-        chain_list = list(PdbChain_To_ProName_dict.keys())
-        chain_list.sort()
-        for chain in chain_list:
-            if PdbChain_To_ProName_dict[chain] == ptn1:
-                pdb_Posi1 = int(pos1) - Delta_PdbNum_To_FastaNum[chain]
-                if pdb_Posi1 in structuredCA_To_chain_dic[chain]:
-                    if structuredCA_To_chain_dic[chain][pdb_Posi1] in XL_sites_list:
-                        site_1_chain.append((chain, pdb_Posi1))
-                    else:
-                        pass
-                else:
-                    pass
-            else:
-                continue
-
-        for chain in chain_list:
-            if PdbChain_To_ProName_dict[chain] == ptn2:
-                pdb_Posi2 = int(pos2) - Delta_PdbNum_To_FastaNum[chain]
-                if pdb_Posi2 in structuredCA_To_chain_dic[chain]:
-                    if structuredCA_To_chain_dic[chain][pdb_Posi2] in XL_sites_list:
-                        site_2_chain.append((chain, pdb_Posi2))
-                    else:
-                        pass
-                else:
-                    pass
-            else:
-                continue
+        ptn1, ptn2, pos1, pos2 = getLinkedSiteInfo(pairs)
+        site_1_chain = calSiteToPdbPos(ptn1, pos1, chainInpdbToPronameDic, deltaPdbNumToFastaNum, structCAtoChainDic)
+        site_2_chain = calSiteToPdbPos(ptn2, pos2, chainInpdbToPronameDic, deltaPdbNumToFastaNum, structCAtoChainDic)
         print(site_1_chain, site_2_chain)
         
         if len(site_1_chain) and len(site_2_chain):
             all_distance = []
             all_dist_dic = {}
             for i in range(len(site_1_chain)):
-                chain1 = site_1_chain[i][0]
-                site1 = site_1_chain[i][1]
-                ori_sit1 = int(site1) + Delta_PdbNum_To_FastaNum[chain1]
+                chain1, site1 = site_1_chain[i]
                 for j in range(len(site_2_chain)):            
-                    chain2 = site_2_chain[j][0]
-                    site2 = site_2_chain[j][1]
-                    ori_site2 = int(site2) + Delta_PdbNum_To_FastaNum[chain2]
+                    chain2, site2 = site_2_chain[j]
                     dis_pdb = cal_pdb_dis(chain1, site1, chain2, site2, pdb)
-                    obj_name = "dist " + chain1 + str(ori_sit1) + "_" + chain2 + str(ori_site2)
+                    obj_name = "dist " + chain1 + pos1 + "_" + chain2 + pos2
                     selec1 = " /" + pdb_name + "//" + chain1 + "/" + str(site1) + "/"+"CA"
                     selec2 = " /" + pdb_name + "//" + chain2 + "/" + str(site2) + "/"+"CA"
                     pym_cmd = obj_name + "," + selec1 + "," + selec2
-                    jwalk_position = "|".join([str(site1), chain1,  str(site2), chain2])
-                    all_dist_dic[site_1_chain[i], site_2_chain[j]] = [str(dis_pdb), jwalk_position]
+                    jwalkPos = "|".join([str(site1), chain1,  str(site2), chain2, ""])
+                    all_dist_dic[site_1_chain[i], site_2_chain[j]] = [str(dis_pdb), jwalkPos]
                     all_distance.append(dis_pdb)
 
-            n = 0
-            while n < len(all_distance):
-                if all_distance[n] == 0.00:
-                    all_distance.remove(0.00)
-                else:
-                    n += 1
+            all_distance = delEleFromList(all_distance, 0.00)
             if all_distance == []:
-                min_dis = "self-cross-link"
+                min_dis = "Self_XL"
             else:
                 min_dis = str(min(all_distance))
             line_write = [pairs, min_dis]
@@ -380,13 +356,15 @@ def main():
                 for key in all_dist_dic:
                     line_write.extend(all_dist_dic[key])
         else:
-            line_write = [pairs, "no Stru"]    
+            line_write = [pairs, "No_Stru"]    
 
         B.write("\t".join(line_write))
         B.write("\n")
 
     B.close()
+    
 
 
 if __name__ == "__main__":
     main()
+    geneXLjwalkCMD()

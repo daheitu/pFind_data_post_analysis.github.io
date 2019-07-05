@@ -1,13 +1,13 @@
 import os
 os.chdir(r"D:\workspace\leiker\result")
 #pro_looking = "sp|P35527|K1C9_HUMAN"  # important! enter the protein name you want search
-modify = "Xlink_AL_clv[Y]"  # important! enter the modification type you want search
-
+modify = "DSS_Quench_1[K]"  # important! enter the modification type you want search
+pfindflPath = r"E:\test\pfind\20190402_D1_D2.protein"
 
 def filter_modification_from_pfind(path):
     os.chdir(path)
     os.chdir(os.getcwd())
-    tab = open("pFind.protein", 'r').readlines()
+    tab = open(pfindflPath, 'r').readlines()
     b = open("report.txt", 'w')
     b.write("\t".join([
         "ID", "Sequence", "Protein", "Modification", "Modi_site",

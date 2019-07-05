@@ -71,6 +71,10 @@ def getAllPSM(path):
     return mpPSM
 
 
+# calculate report ions mass no charge
+
+
+
 # 针对一个psm，计算理论碎片离子，都是1价的
 def getIons(psm):
     a, b = psm[3].split('-')

@@ -1,4 +1,4 @@
-# coding = utf-8
+# coding = utf8
 '''
 python 3.6, pLink2.3.5 or later version
 if you have any question, please contact caoyong@nibs.ac.cn
@@ -7,7 +7,7 @@ import os
 import re
 
 scoreType = 0 # important, 0 for spectra num, 1 for Best E-value, 2 for Best_svm
-path = r'./example' # the path of pLink2 reports file
+path = r'D:\softwareData\plink2\pLink_task_2018.03.05.07.48.38_KARGO_T\reports' # the path of reports file
 
 ###############Don't change the following lines#####################################
 

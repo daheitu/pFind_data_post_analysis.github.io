@@ -53,7 +53,7 @@ def detectPepFeat(openedMS1, intensCutoff):
                         continue
                     else:
                         if len(finalPepFeatDic):
-                            currFanalList = sorted(list(finalPepFeatDic))
+                            currFanalList = sorted(list(finalPepFeatDic.keys()))
                             [findBool, matchedMZ] = findOneMZ1(mz, currFanalList, 10)
                             if findBool == False:
                                 finalPepFeatDic[mz] = [mz, chrg, intens, currentScan]
@@ -133,13 +133,14 @@ def detectGlobalBaseLine(openedMS1, mz, randNum):
     return round(sum(intensList)/len(intensList), 1)
 
 
-def calcEluteArea(eluteMS1dic, mz, intensCutoff):
+def calcEluteArea(eluteMS1dic, mz, intes, peakbase):
+    intensCutoff = intes * peakbase
     wantedMZeluteDic = {}
     for scan in eluteMS1dic:
         currRT, currMzInDic = eluteMS1dic[scan]
         chargedMZdic = detectIsotopic(currMzInDic)
         currMzList = sorted(list(chargedMZdic.keys()))
-        findBool, matchedMZ = findOneMZ1(mz, currMzList, 10)
+        findBool, matchedMZ = findOneMZ1(mz, currMzList, 20)
         if findBool:
             wantedMZeluteDic[scan] = [currRT, currMzInDic[matchedMZ]]
         else:
@@ -160,19 +161,21 @@ def calcEluteArea(eluteMS1dic, mz, intensCutoff):
 
 
 def main():
+    peakbase = 0.1
     for fl in os.listdir(os.getcwd()):
         if fl[-4:] == ".ms1":
             print("the current ms file is " + fl)
             f = open(fl, 'r').readlines()
-            repName = fl[:-4] + "pep_list.txt"
+            repName = fl[:-4] + "pep_list_perc10.txt"
             b = open(repName, 'w')
             b.write("\t".join(["mz", "charge", "Intensity", "scanNum", "Area"]) + "\n")
             baseIntens = detectGlobalBaseLine(f, 462.14658, 5)
             finalPepFeatDic = detectPepFeat(f, baseIntens)
             for mz in finalPepFeatDic:
                 scan = finalPepFeatDic[mz][-1]
+                intes = finalPepFeatDic[mz][-2]
                 eluteRangeDic = readMS1file(f, scan, 100)
-                wantedMZeluteArea = calcEluteArea(eluteRangeDic, mz, baseIntens)
+                wantedMZeluteArea = calcEluteArea(eluteRangeDic, mz, intes, peakbase)
                 finalPepFeatDic[mz].append(wantedMZeluteArea)
                 writeLine = [str(ele) for ele in finalPepFeatDic[mz]]
                 b.write("\t".join(writeLine) + "\n")

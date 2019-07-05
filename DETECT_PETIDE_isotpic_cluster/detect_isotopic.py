@@ -3,7 +3,7 @@ from copy import deepcopy
 from read_spec_from_mgf import read_spec
 from delta_ppm import generate_mass_range
 
-os.chdir(r"D:\Onedriver\OneDrive\github\pFind_data_post_analysis.github.io\DETECT_PETIDE_isotpic_cluster")
+#os.chdir(r"D:\Onedriver\OneDrive\github\pFind_data_post_analysis.github.io\DETECT_PETIDE_isotpic_cluster")
 
 
 def compareTwoNum(realNum, TheroNum, tolPPM):
@@ -14,20 +14,36 @@ def compareTwoNum(realNum, TheroNum, tolPPM):
 
 
 def findOneMZ(mz, ms2MzList, begin_idx, tol_ppm):
-    k = begin_idx + 1
     [low_ms, up_ms] = generate_mass_range(mz, tol_ppm)
-    if ms2MzList[-1] < low_ms:
-        return False, -1
-    else:
-        while k < len(ms2MzList):
-            if float(ms2MzList[k]) > up_ms:
-                return False, -1
-            elif float(ms2MzList[k]) >= low_ms:
-                return True, ms2MzList[k]
-            else:
-                k += 1
-        if k == len(ms2MzList):
+    if mz >  ms2MzList[begin_idx]:
+        k = begin_idx + 1
+        
+        if ms2MzList[-1] < low_ms:
             return False, -1
+        else:
+            while k < len(ms2MzList):
+                if float(ms2MzList[k]) > up_ms:
+                    return False, -1
+                elif float(ms2MzList[k]) >= low_ms:
+                    return True, ms2MzList[k]
+                else:
+                    k += 1
+            if k == len(ms2MzList):
+                return False, -1
+    else:
+        k = begin_idx - 1
+        if ms2MzList[0] > up_ms:
+            return False, -1
+        else:
+            while k > 0:
+                if float(ms2MzList[k]) < low_ms:
+                    return False, -1
+                elif float(ms2MzList[k]) <= up_ms:
+                    return True, ms2MzList[k]
+                else:
+                    k -= 1
+            if k == -1:
+                return False, -1
 
 
 def detectIsotopic(ms2_dic):
@@ -61,6 +77,7 @@ def detectIsotopic(ms2_dic):
                     if mzPlus1Bool and intensPlus1Bool:
                         chrg = chr_list[min_delta_idx]
                         interval = dmassChargeList[min_delta_idx]
+                        #print(interval)
                         match_bool, matchedMZ = findOneMZ(float(mz)+interval*2, ms2MzList, idx, 20)
                         if match_bool:
                             find_bool = True
@@ -74,11 +91,12 @@ def detectIsotopic(ms2_dic):
                                     m += 1
                                 else:
                                     break
-                            if mz * chrg > 1600:
+                            if iso_cluster[0] * chrg > 1600:                                
                                 for n in range(1,4):
-                                    [matchLessBool, matchLessMZ] = findOneMZ(float(mz)-interval*n, ms2MzList, idx-10, 20)
+                                    [matchLessBool, matchLessMZ] = findOneMZ(iso_cluster[0]-interval, ms2MzList, idx, 20)
+                                    #print(matchLessBool, matchLessMZ)
                                     if matchLessBool:
-                                        if matchLessMZ/ms2_dic[iso_cluster[0]] > 0.3:
+                                        if ms2_dic[matchLessMZ]/ms2_dic[iso_cluster[0]] > 0.3:
                                             iso_cluster.insert(0, matchLessMZ)
                                         else:
                                             break

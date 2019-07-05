@@ -64,8 +64,3 @@ for raw in raw_list:
     else:
         continue    
             
-       
-
-    
-    
-

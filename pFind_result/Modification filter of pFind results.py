@@ -4,17 +4,7 @@ pro_looking = "sp|P35527|K1C9_HUMAN"  # important! enter the protein name you wa
 modify = "Deamidated"  # important! enter the modification type you want search
 
 
-def filter_modification_from_pfind(path):
-    os.chdir(path)
-    os.chdir(os.getcwd())
-    tab = open("pFind.protein", 'r').readlines()
-    b = open("report.txt", 'w')
-    b.write("\t".join([
-        "ID", "Sequence", "Protein", "Modification", "Modi_site",
-        "Spectra Number", "Final score", "Spectra title"
-    ]))
-    b.write("\n")
-
+def filter_modification_from_pfind(path, tab):
     for line in tab[2:]:
         line_list = line.rstrip("\n").split("\t")
         if line_list[0].isdigit():
@@ -117,6 +107,15 @@ def statistic_to_site_level():
 
 
 def main():
+    os.chdir(path)
+    os.chdir(os.getcwd())
+    tab = open("pFind.protein", 'r').readlines()
+    b = open("report.txt", 'w')
+    b.write("\t".join([
+        "ID", "Sequence", "Protein", "Modification", "Modi_site",
+        "Spectra Number", "Final score", "Spectra title"
+    ]))
+    b.write("\n")
     path = os.getcwd()
     filter_modification_from_pfind(path)
     statistic_to_site_level()

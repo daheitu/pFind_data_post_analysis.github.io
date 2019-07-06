@@ -68,10 +68,11 @@ def statsticColumn(k, rawName, openedFL, flToWrite):
 def main():
     f = open("AR7_con_2019.07.05_Trypsin_DSSv4.txt", 'r').readlines()
     b = open("report.txt", 'w')
-    b.write("\t".join(["rawName", "numOfPepOfNTxl", "numOfSpecOfNTxl", "numOfPepOfMMxl", \
-            "numOfSpecOfMMxl", "numOfPepfreeOfMMxl", "numOfSpecfreeOfMMxl", \
-            "AcIR7O_Inter_sites", "AcIR7O_Inter_Spec", "EL10_Inter_sites",\
-            "EL10_Inter_Spec", "other_Inter_sites", "other_Inter_Spec"])+"\n")
+    b.write("\t".join(["rawName", "numOfPepOfNTxl", "numOfSpecOfNTxl",\
+        "numOfPepOfMMxl", "numOfSpecOfMMxl", "numOfPepfreeOfMMxl", \
+        "numOfSpecfreeOfMMxl", "AcIR7O_Inter_sites", "AcIR7O_Inter_Spec",\
+        "EL10_Inter_sites","EL10_Inter_Spec", "other_Inter_sites",\
+        "other_Inter_Spec"])+"\n")
     titleList = f[0].strip().split("\t")
     for k in range(6, len(titleList), 3):
         rawName = titleList[k]

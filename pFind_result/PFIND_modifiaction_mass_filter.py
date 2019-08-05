@@ -1,6 +1,6 @@
 # import os
 
-mass_find = 156.078638
+mass_find = 42
 delta_ppm = 1000
 
 
@@ -8,8 +8,20 @@ def generate_ion_mass_range(num):
     deta = num * delta_ppm / 1000000
     return num - deta, num + deta
 
+mass_low, mass_up = generate_ion_mass_range(mass_find)
+f = open(r"E:\Program Files\pLink2.3.5\bin\modification.ini", 'r').readlines()
 
-f = open(r"C:\Users\Administrator\Documents\modification.ini", 'r').readlines()
+for i in range(2, len(f), 2):
+    #print(i)
+    name, info = f[i].split("=")
+    massADD = float(info.split(" ")[2])
+    chem_formal = info.split(" ")[-1].strip()
+    if massADD > mass_low and massADD < mass_up:
+        print(name, massADD, chem_formal)
+
+
+
+"""
 modifi_dic = {}
 for line in f[1:]:
     if "name" not in line and "=" in line:
@@ -38,3 +50,4 @@ if find_bool is False:
     print("None")
 else:
     pass
+"""

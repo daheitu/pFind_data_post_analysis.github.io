@@ -9,7 +9,7 @@ import os
 import re 
 
 os.chdir(
-    r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.07.05.16.09.12_AR7_RESpep_R2\reports"
+    r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.08.02.20.28.10\reports"
 )
 spec_cutoff = 0  # spectra number cut-off
 Best_evalue_cutoff = 2
@@ -30,7 +30,7 @@ def site_correct(linked_site):
         link_type = "Inter"
     else:
         if abs(int(position1) - int(position2)) < 5:
-            link_type = "Inter"
+            link_type = "May be Inter"
         else:
             link_type = "Intra"
 
@@ -71,21 +71,20 @@ def get_report_file_name():
     path = os.getcwd()
     path_d = os.path.dirname(path)
     os.chdir(path_d)
-    print(path_d)
+    
     file_list = os.listdir(path_d)
     for fl in file_list:
         if fl[-5:] in ["pfind", "plink"]:
             para = open(fl).readlines()
             for line in para:
+                #print(line)
                 if line[:10] == "spec_title":
-                    print(line)
+                    #print(line)
                     spec_title = line.rstrip("\n").split("=")[1].strip()
-                elif line[:11] == "enzyme_name":
+                if line[:11] == "enzyme_name":
                     enzyme = line.rstrip("\n").split("=")[1].strip()
-                elif line[:7] == "linker1":
+                if line[:7] == "linker1":
                     linker = line.rstrip("\n").split("=")[1].strip()
-                else:
-                    continue
         else:
             continue
 
@@ -106,7 +105,7 @@ def get_crosslink_site_info(site_table, b):
     print("All raw files are: " + ",".join(raw_name_list))
     col = [
         "Linked Site", "Total Spec", "Best E-value", "Best Svm Score",
-        "Peptide", "Prote type"
+        "Peptide", "Link type"
     ]
     for name in raw_name_list:
         col.append(name + "_SpecNum")
@@ -118,23 +117,43 @@ def get_crosslink_site_info(site_table, b):
     return raw_name_list
 
 
+def cal_sumOfOneColumn(openedfl, k_column):
+    f = openedfl; k = k_column
+    sumNum = 0
+    for line in f[1:]:
+        lineList = line.rstrip("\n").split("\t")
+        val = lineList[k]
+        if val:
+            sumNum += int(lineList[k])
+    return sumNum
+
+
+def cal_numRange(openedfl, k_column):
+    f = openedfl; k = k_column
+    valList = []
+    for line in f[1:]:
+        lineList = line.rstrip("\n").split("\t")
+        val = lineList[k]
+        if val:
+            valList.append(val)
+    newList = sorted(valList, key = lambda x: float(x))
+    return newList[0] + "--" + newList[-1]
+    
+
 def statistic_report_file():
     report_file_name = get_report_file_name()
     c = open(report_file_name, 'a')
     rep_table = open(report_file_name, 'r').readlines()
     title_list = rep_table[0].split("\t")
     col_dic = {}
-    total_spectra = 0
     total_colom = len(rep_table[0].strip().split("\t"))
     intra_num = 0
     for i in range(1, len(rep_table)):
-        total_spectra += int(rep_table[i].strip("\n").split("\t")[1])
         if rep_table[i].strip("\n").split("\t")[5] == "Intra":
             intra_num += 1
-    print(intra_num)
     col_dic[5] = float(intra_num) / (float(len(rep_table)) - 1.0)
     col_dic[0] = len(rep_table) - 1
-    col_dic[1] = total_spectra
+    col_dic[1] = cal_sumOfOneColumn(rep_table, 1)
     col_dic[2] = ""
     col_dic[3] = ""
     col_dic[4] = ""
@@ -142,39 +161,16 @@ def statistic_report_file():
     column_sub_dic = {}
     for k in [6, 8]:
         for j in range(k, total_colom, 3):
-            col_dic[j] = 0
-            for line in rep_table[1:]:
-                line_list = line.rstrip("\n").split("\t")
-                if line_list[j]:
-                    col_dic[j] += int(line_list[j])
-                else:
-                    continue
+            #print("the column is " + str(j))
+            col_dic[j] = cal_sumOfOneColumn(rep_table, j)
 
     for j in range(7, total_colom, 3):
-        line_1_list = rep_table[1].rstrip("\n").split("\t")
-        column_sub_dic[j] = []
-        min_evl = float(line_1_list[j])
-        max_evl = float(line_1_list[j])
-        for line in rep_table[2:]:
-            line_list = line.rstrip("\n").split("\t")
-            evalue = line_list[j]
-            if evalue:
-                evalue = float(line_list[j])
-                if evalue > max_evl:
-                    max_evl = evalue
-                elif evalue < min_evl:
-                    min_evl = evalue
-                else:
-                    pass
-            else:
-                continue
-        col_dic[j] = str(min_evl) + ' To ' + str(max_evl)
+        col_dic[j] = cal_numRange(rep_table, j)
+        
     last = []
     for k in range(total_colom):
         last.append(str(col_dic[k]))
-    c.write("\t".join(last))
-    c.write("\n")
-    print(last)
+    c.write("\t".join([str(ele) for ele in last]) + "\n")
     raw_dic = {}
     for i in range(7, len(title_list)):
         raw_name_list = title_list[i].split("_")[:-1]
@@ -194,6 +190,101 @@ def statistic_report_file():
     return
 
 
+def splitResult(openedfl, raw_name_list):
+    finalList = []
+    f = openedfl
+    n = 2
+    while n < len(f):
+        spec_dic = {}
+        pep_dic = {}
+        evalue_dic = {}
+
+        line = f[n]
+        line_list = line.rstrip("\n").split(",")
+        if line_list[0].isdigit():
+            site_list = [line_list[1]]
+            p = n + 1
+        else:
+            print(n)
+        
+        cell1 = f[p].rstrip("\n").split(",")[0]
+        
+        if cell1.isdigit():
+            pass
+        else:
+            while p < len(f):
+                line_list = f[p].rstrip("\n").split(",")
+                if line_list[0] == "" and line_list[1].isdigit():
+                    break
+                else:
+                    if line_list[0] == "SameSet":
+                        site_list.append(line_list[1])              
+                    p += 1
+        
+        site = site_list_process(site_list)[0]
+        if site == "":
+            while p < len(f):
+                if f[p].rstrip("\n").split(",")[0].isdigit():
+                    break
+                else:
+                    p += 1
+        else:
+            link_type = site_list_process(site_list)[1]
+            bestSVMscore = f[p].rstrip("\n").split(",")[9]
+            pep_std = f[p].rstrip("\n").split(",")[5]
+            while p < len(f): # and f[p].rstrip("\n").split(",")[0] == "":
+                line_list = f[p].rstrip("\n").split(",")
+                if line_list[0].isdigit():
+                    break
+                else:
+                    evalue = line_list[8]
+                    if float(evalue) < E_value_cutoff_SpecLvl:
+                        pep = line_list[5]
+                        raw_name = line_list[2][:line_list[2].find(".")]                        
+                        if raw_name not in spec_dic:
+                            spec_dic[raw_name] = 1
+                        else:
+                            spec_dic[raw_name] += 1
+
+                        if raw_name not in pep_dic: 
+                            pep_dic[raw_name] = [pep]
+                        else:
+                            if pep not in pep_dic[raw_name]:
+                                pep_dic[raw_name].append(pep)
+
+                        if raw_name not in evalue_dic:
+                            evalue_dic[raw_name] = evalue
+                        else:
+                            if float(evalue) < float(evalue_dic[raw_name]):
+                                evalue_dic[raw_name] = evalue
+
+                    p += 1
+
+            total_spec = 0
+            min_evalue = 1
+            for key in evalue_dic:
+                total_spec += spec_dic[key]
+                if float(evalue_dic[key]) < float(min_evalue):
+                    min_evalue = evalue_dic[key]
+                else:
+                    continue
+            if total_spec > spec_cutoff and float(min_evalue) < Best_evalue_cutoff:
+                rep_list = [site, total_spec, min_evalue,\
+                    bestSVMscore, pep_std, link_type]
+                
+                for raw in raw_name_list:
+                    if raw not in spec_dic:
+                        SEP = ["", "", ""]
+                    else:
+                        SEP = [spec_dic[raw], evalue_dic[raw], len(pep_dic[raw])]
+                    rep_list.extend(SEP)
+
+                finalList.append("\t".join([str(ele) for ele in rep_list]))
+
+        n = p
+    return finalList
+
+
 def main():
     filename_list = os.listdir(os.getcwd())
     link_site_file = ""
@@ -210,105 +301,12 @@ def main():
     report_file_name = get_report_file_name()
     b = open(report_file_name, 'w')
     raw_name_list = get_crosslink_site_info(f, b)
-    n = 2
-    while n < len(f):
-        print(n)
-        spec_dic = {}
-        pep_dic = {}
-        evalue_dic = {}
-
-        line = f[n]
-        line_list = line.rstrip("\n").split(",")
-        if line_list[0].isdigit():
-            site_list = [line_list[1]]
-            p = n + 1
-        else:
-            print(n)
-        if f[p].rstrip("\n").split(",")[0] in ["SameSet", "SubSet"]:
-            while p < len(f) and f[p].rstrip("\n").split(",")[0] in [
-                    "SameSet", "SubSet"
-            ]:
-                if f[p].rstrip("\n").split(",")[0] == "SameSet":
-                    site_list.append(f[p].rstrip("\n").split(",")[1])
-                else:
-                    pass
-                p += 1
-        else:
-            pass
-        site = site_list_process(site_list)[0]
-        if site == "":
-            while p < len(f) and f[p].rstrip("\n").split(",")[0] == "":
-                p += 1
-        else:
-            link_type = site_list_process(site_list)[1]
-            best_svm_score = f[p].rstrip("\n").split(",")[9]
-            pep_std = f[p].rstrip("\n").split(",")[5]
-            while p < len(f) and f[p].rstrip("\n").split(",")[0] == "":
-                line_list = f[p].rstrip("\n").split(",")
-                evalue = line_list[8]
-                if float(evalue) < E_value_cutoff_SpecLvl:
-                    raw_name = line_list[2][:line_list[2].find(".")]
-                    pep = line_list[5]
-                    if raw_name not in spec_dic:
-                        spec_dic[raw_name] = 1
-                    else:
-                        spec_dic[raw_name] += 1
-
-                    if raw_name not in pep_dic: 
-                        pep_dic[raw_name] = [pep]
-                    else:
-                        if pep not in pep_dic[raw_name]:
-                            pep_dic[raw_name].append(pep)
-                        else:
-                            pass
-
-                    if raw_name not in evalue_dic:
-                        evalue_dic[raw_name] = float(evalue)
-                    else:
-                        if float(evalue) < evalue_dic[raw_name]:
-                            evalue_dic[raw_name] = float(evalue)
-                        else:
-                            pass
-                else:
-                    pass
-                p += 1
-
-            total_spec = 0
-            min_evalue = 1
-            for key in evalue_dic:
-                total_spec += spec_dic[key]
-                if evalue_dic[key] < min_evalue:
-                    min_evalue = evalue_dic[key]
-                else:
-                    continue
-
-            rep_dic = {}
-            for raw_name in raw_name_list:
-                if raw_name not in spec_dic:
-                    rep_dic[raw_name] = ["", "", ""]
-                else:
-                    rep_dic[raw_name] = [
-                        str(spec_dic[raw_name]),
-                        str(evalue_dic[raw_name]),
-                        str(len(pep_dic[raw_name]))
-                    ]
-            rep_list = [
-                site, str(total_spec),
-                str(min_evalue), best_svm_score, pep_std, link_type
-            ]
-            for raw_name in raw_name_list:
-                rep_list.extend(rep_dic[raw_name])
-
-            if float(rep_list[1]) > spec_cutoff and float(
-                    rep_list[2]) < Best_evalue_cutoff:
-                b.write("\t".join(rep_list))
-                b.write("\n")
-            else:
-                pass
-
-        n = p
+    finalList = splitResult(f, raw_name_list)
+    finalList = sorted(finalList, key = lambda x: int(x.split("\t")[1]), reverse = True)
+    for line in finalList:
+        b.write(line + "\n")
     b.close()
-    # statistic_report_file()
+    statistic_report_file()
 
 
 if __name__ == "__main__":

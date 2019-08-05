@@ -2,7 +2,7 @@
 
 import os, re
  
-os.chdir(r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.07.05.16.09.12_AR7_RESpep_R2\reports")
+os.chdir(r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.07.03.15.20.56\reports")
 
 def getSiteInfo(linked_site):
     pos_list = re.findall("\((\d*)\)", linked_site)
@@ -36,7 +36,7 @@ def statsticColumn(k, rawName, openedFL, flToWrite):
         lineList = line.rstrip("\n").split("\t")
         linkSite = lineList[0]
         pro1, pro2, pos1, pos2 = getSiteInfo(linkSite)
-        if lineList[k] not in [""]:#, "1"]:
+        if lineList[k] not in ["", "1"]:#]:
             totalSpec = int(lineList[k])
             if pro1[-4:] == "PR-4" and pro2[-4:] == "PR-4":
                 if pos1 == "1" or pos2 == "1":
@@ -66,7 +66,7 @@ def statsticColumn(k, rawName, openedFL, flToWrite):
 
 
 def main():
-    f = open("AR7_con_2019.07.05_Trypsin_DSSv4.txt", 'r').readlines()
+    f = open("AR7_con_2019.07.03_Trypsin_DSSv4.txt", 'r').readlines()
     b = open("report.txt", 'w')
     b.write("\t".join(["rawName", "numOfPepOfNTxl", "numOfSpecOfNTxl",\
         "numOfPepOfMMxl", "numOfSpecOfMMxl", "numOfPepfreeOfMMxl", \

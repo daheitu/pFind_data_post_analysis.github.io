@@ -4,10 +4,10 @@ import re
 from numpy import *
 
 
-path = r"D:\E\Collabaration\KArGO\figures\table\S3"
+path = r"F:\Script\pdbDatabase\3u28_CNG"
 XL_sites_list = ["R", "K"]
 os.chdir(path)
-input_file = "ALPK1.txt"
+input_file = "BDG.txt"
 output_file = input_file + "_out.txt"
 
 

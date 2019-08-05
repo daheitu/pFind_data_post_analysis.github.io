@@ -38,7 +38,12 @@ links. (plink早就这样做了)
 5. Scoring modified to include all recorded subscores (peptide scores, prescore, deltascore)
 6. Precursor mass correction implemented （pparse的功能）
 
+总的来说，这篇文章是sinz提升DSBU影响力的重要文章，对于dsso而言，前有刘凡的两篇nature 子刊文章，后有yu haiyuan的maxlinker，不断刷新鉴定记录至9,319。本篇文章的7436对交联，虽然不及maxlinker，但分子间的1611交联比maxlinker的1268也多出了不少。我推测sinz对这篇文章的期待至少是nature 子刊级别的，可最终发在了ac上。下面我理一下这篇文章不太好的方面。
 ##文章糟点
+1. 从创新性来讲，无论是分离，质谱方法和软件上都没有特别新颖，出彩的地方。
+2. 实验可重复性差。  只有15.4%的结果在三次生物重复中都出现了。（fig3a）
+3. 可疑的灵敏度。 在分别用整个果蝇的蛋白组（21973蛋白）和用MaxQuant鉴定到的蛋白（9535个蛋白）作为搜索数据库，使用21973个蛋白搜索得到的结果居然更多。如果把这个实验也当作陷阱库实验的话，利用MaxQuant鉴定到的蛋白作为数据库的搜索结果中有4.2%的交联对落在了陷阱库里。
+4. 使用宽松的距离约束获得更好的结构吻合度。 DSBU的交联剂臂长12.5，加上k侧链6x2，是24.5，文中把最大约束放到了32.
 
 
 

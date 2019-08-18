@@ -7,9 +7,11 @@ Created on Sun Apr 28 15:52:57 2019
 import os
 from scipy.stats import norm
 
-pLink2_id_folder=r'C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.08.13.16.29.37'
-inclusion_list=r'C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.08.13.16.29.37\inclusion_list.csv'
-inclusion_list_detail=r'C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.08.13.16.29.37\inclusion_list_detail.csv'
+path = r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.08.14.10.47.09_ALDO_R2"
+
+pLink2_id_folder = path
+inclusion_list=os.path.join(path , 'inclusion_list.csv')
+inclusion_list_detail= os.path.join(path, 'inclusion_list_detail.csv')
 
 ######## do not touch files below  #####################
 pq=r'%s\pQuant\pQuant.spectra'%pLink2_id_folder

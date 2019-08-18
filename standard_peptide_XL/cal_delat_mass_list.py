@@ -25,7 +25,7 @@ def loadHydrophoicData():
 def seqPreTreat(seq):
     return seq[1:-1].split("|")
 
-
+ 
 def getSeq(unit):
     seq1, seq2 = unit.split("-")
     return seqPreTreat(seq1), seqPreTreat(seq2)

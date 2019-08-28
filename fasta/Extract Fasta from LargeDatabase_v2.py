@@ -9,10 +9,10 @@ python Extract Fasta from LargeDatabase.py
 """
 
 import os
-os.chdir(r"D:\workspace\pFindTask39\result\pBuild_tmp")
-FastaFile = "human_unitprot_contaminant.fasta"
-new_fasta = "Atg16_557.fasta"
-psm_cuoff = 100
+os.chdir(r"E:\workspace\pFindTask74\result\pBuild_tmp")
+FastaFile = "DP.fasta"
+new_fasta = "DP_A8B4.fasta"
+psm_cuoff = 50
 
 
 def Get_ProList_from_pBuildFile(filename):

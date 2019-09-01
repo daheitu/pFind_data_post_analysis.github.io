@@ -92,6 +92,13 @@ for wd in combDic:
         combDic[wd] = combDic[wd][:2]
 print(len(combDic))
 
+scanTargetList = []
+for wd in combDic:
+    for info in combDic[wd]:
+        bg, ed = info[3]
+        scanTargetList.extend(list(range(bg, ed+1)))
 
+scanTargetList.sort()
+print(scanTargetList)
 
 

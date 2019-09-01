@@ -101,4 +101,12 @@ for wd in combDic:
 scanTargetList.sort()
 print(scanTargetList)
 
+b = open("resultFilter.csv", 'w')
+b.write(f[0])
+for line in f[1:]:
+    if int(line.strip().split(",")[0]) in scanTargetList:
+        b.write(line)
+b.close()
+
+
 

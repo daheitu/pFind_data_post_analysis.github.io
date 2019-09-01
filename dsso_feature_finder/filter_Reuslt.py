@@ -121,3 +121,10 @@ for line in ft[1:]:
         combyNCEdic[nce].append(tagt)
 
 print(combyNCEdic)
+for i in range(len(combyNCEdic[22])):
+    wlist = []
+    for nce in combyNCEdic:
+        wlist.append(combyNCEdic[nce][i])
+    c.write(",".join(wlist)+"\n")
+
+c.close()

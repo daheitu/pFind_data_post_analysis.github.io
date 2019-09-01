@@ -118,6 +118,6 @@ for line in ft[1:]:
     if nce not in combyNCEdic:
         combyNCEdic[nce] = [tagt]
     else:
-        combyNCEdic.append(tagt)
+        combyNCEdic[nce].append(tagt)
 
 print(combyNCEdic)

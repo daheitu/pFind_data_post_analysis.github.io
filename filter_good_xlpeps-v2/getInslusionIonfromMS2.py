@@ -3,7 +3,7 @@
 import os
 
 #os.chdir("F:\MS_DATA_STORAGE\20190819")
-flPath = r"F:\MS_DATA_STORAGE\20190819\multiNCE\BSA_DSSO_R1_pre1_40sElute.ms2"
+flPath = r"F:\MS_DATA_STORAGE\20190819\multiNCE\BSA_DSSO_INCLU_RANDOM_REVERSE_R1.ms2"
 
 
 def findMZinmzDic(mz, charge, mzdic):

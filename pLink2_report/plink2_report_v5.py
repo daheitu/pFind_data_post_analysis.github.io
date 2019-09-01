@@ -1,7 +1,5 @@
 # coding: utf-8
 """
-Created on Mon Aug 15 10:38:11 2018
-@author: CaoYong
 This script can help you to summary the plink2 report file
 """
 
@@ -31,20 +29,18 @@ def judgeHomoHetro(linked_site, pepXL):
     else:
         linkPosPep1, linkPosPep2 = re.findall("\((\d*)\)", pepXL)
         p1 = pepXL.find(")-")
-        m1 = pepXL.find("(" + linkPosPep1 + ")-")
-        n1 = pepXL.find("(" + linkPosPep2 + ")-")
+        m1 = pepXL.find("(" + linkPosPep1 + ")")
+        n1 = pepXL.find("(" + linkPosPep2 + ")", p1)
         pep1 = pepXL[:m1]
         pep2 = pepXL[p1 + 2: n1]
         deltaList = [int(position1) - int(linkPosPep1), int(position2) - int(linkPosPep2)]
         pep1IDX = [1+deltaList[0], len(pep1)+ deltaList[0]]
         pep2IDX = [1+deltaList[1], len(pep2)+ deltaList[1]]
-        print(pep1IDX, pep2IDX)
-        if pep1IDX[1] < pep2IDX[0] or pep1IDX[0] < pep2IDX[1]:
+        if pep1IDX[1] < pep2IDX[0] or pep1IDX[0] > pep2IDX[1]:
             return "Intra"
         else:
             return "Inter"
 
-print(judgeHomoHetro("sp|P21187|PABP_DROME (95)-sp|P21187|PABP_DROME (159)", "SGVGNVFIKNLDR(9)-KVYVGK(1)"))
 
 def site_list_process(site_list, pepXLlist):
     i = 0
@@ -66,7 +62,7 @@ def site_list_process(site_list, pepXLlist):
                     break
                 else:
                     continue
-            if j == len(pepXLlist):
+            if j == len(pepXLlist)-1:
                 link_type_list.append("Intra")
         linkType = "/".join(link_type_list)
         site = "/".join(site_list)
@@ -110,7 +106,7 @@ def get_crosslink_site_info(site_table, b):
     print("All raw files are: " + ",".join(raw_name_list))
     col = [
         "Linked Site", "Total Spec", "Best E-value", "Best Svm Score",
-        "Peptide", "Link type"
+        "Peptide", "Inter or Intra Molecular"
     ]
     for name in raw_name_list:
         col.append(name + "_SpecNum")
@@ -316,7 +312,8 @@ def main():
     for line in finalList:
         b.write(line + "\n")
     b.close()
-    statistic_report_file()
+    print("Well Done")
+    #statistic_report_file()
 
 
 if __name__ == "__main__":

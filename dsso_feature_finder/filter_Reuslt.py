@@ -108,5 +108,16 @@ for line in f[1:]:
         b.write(line)
 b.close()
 
+ft = open("resultFilter.csv", 'r').readlines()
+c = open("comby.csv", 'w')
+combyNCEdic = {}
+for line in ft[1:]:
+    lineList = line.strip().split(",")
+    tagt = lineList[6]
+    nce = lineList[3]
+    if nce not in combyNCEdic:
+        combyNCEdic[nce] = [tagt]
+    else:
+        combyNCEdic.append(tagt)
 
-
+print(combyNCEdic)

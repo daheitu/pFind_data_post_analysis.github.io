@@ -22,7 +22,7 @@ mpMassTable={'A':71.037114, 'R':156.101111, 'N':114.042927, 'D':115.026943,\
     'C':103.009185, 'E':129.042593,'Q':128.058578,'G':57.021464, 'H':137.058912,\
     'I':113.084064, 'L':113.084064,'K':128.094963,'M':131.040485, 'F':147.068414,\
     'P':97.052764, 'S':87.032028, 'T':101.047679, 'U':150.95363, 'W':186.079313,\
-    'Y':163.06332, 'V':99.068414, 'H2O':18.01056,'Proton':1.0072766}
+    'Y':163.06332, 'V':99.068414, 'H2O':18.01056,'Proton':1.00782}
 
 mpModMass = {
     'Carbamidomethyl[C]': 57.021464,
@@ -34,6 +34,39 @@ mstol = 20.0
 def calMassPepPlusMod(massList, modMass):
     pepMass = sum(massList) + mpMassTable['H2O']
     return  pepMass +  modMass + mpMassTable['Proton']
+
+
+def calPepBYions(massList, linkSite, linkAddMass):
+    pepMass = sum(massList) + mpMassTable['H2O'] + linkAddMass\
+         + 2 * mpMassTable['Proton']
+    pep_len = len(massList)
+    tmp_mass = mpMassTable['Proton']
+    b1Ion_pep = [0] * (pep_len - 1)
+    y1Ion_pep = [0] * (pep_len - 1)
+    for i in range(pep_len - 1):
+        if i == linkSite:
+            tmp_mass += linkAddMass
+        else:
+            pass
+
+        tmp_mass += massList[i]
+        b1Ion_pep[i] = tmp_mass
+        y1Ion_pep[i] = pepMass - tmp_mass
+    
+    return b1Ion_pep, y1Ion_pep
+
+
+def calInternalIon(massList, linkSite, linkAddMass):
+    pep_len = len(massList)
+    Intenal_Pep_List = [0] * (pep_len - 1)
+    for i in range(pep_len - 1):
+        if i < linkSite:
+            Intenal_Pep_List[i] = sum(massList[i + 1:]) + mpMassTable['H2O']\
+                 + linkAddMass + 1.00782
+        else:
+            Intenal_Pep_List[i] = sum(massList[:i + 1]) + linkAddMass + 1.00782
+    return Intenal_Pep_List
+
 
 
 # 根据肽段和修饰生成理论碎片离子
@@ -91,85 +124,28 @@ def getTheroIons(pep, modCell):
     b_short_mass = calMassPepPlusMod(b_mass_list, shortArmMass)
     ###################4 reporter ions mass 1+ ############################
 
-    ####regular b,y ions ####
+    ######################regular b,y ions 1+########################
     pep_mass = a_long_mass + b_short_mass + mpMassTable['H2O']
     a_linker_mass = sum(a_mass_list) + mpMassTable['H2O'] + LinkerMass
     b_linker_mass = sum(b_mass_list) + mpMassTable['H2O'] + LinkerMass
 
-    tmp_mass = mpMassTable['Proton']
-    # b1+ of alpha
-    b1Ion_pep_a = [0] * (pep_a_len - 1)  
-    for i in range(pep_a_len - 1):
-        if i == site_a:
-            tmp_mass += b_linker_mass
-        else:
-            pass
+    b1IonPepAlpha, y1IonPepAlpha = calPepBYions(a_mass_list, site_a, b_linker_mass)
 
-        tmp_mass += a_mass_list[i]
-        b1Ion_pep_a[i] = tmp_mass
+    b1IonPepBeta, y1IonPepBeta = calPepBYions(b_mass_list, site_b, a_linker_mass)
+    ######################regular b,y ions 1+########################
+    
 
-    tmp_mass = mpMassTable['Proton'] + mpMassTable['H2O']
-    y1Ion_pep_a = [0] * (pep_a_len - 1)  # y1+ of alpha
-    for i in range(pep_a_len - 2, -1, -1):
-        tmp_mass += a_mass_list[i + 1]
-        if i + 1 == site_a:
-            tmp_mass += b_linker_mass
-        y1Ion_pep_a[i] = tmp_mass
+    #############Internal ions mass 1+  cleave at linker and backbone######
+    IntenalIonLongAlpha = calInternalIon(a_mass_list, site_a, longArmMass)
+    IntenalIonShortAlpha = calInternalIon(a_mass_list, site_a, shortArmMass)
 
-    tmp_mass = mpMassTable['Proton']
-    b1_b = [0] * (pep_b_len - 1)  # b1+ of beta
-    for i in range(pep_b_len - 1):
-        tmp_mass += b_mass_list[i]
-        if i == site_b:
-            tmp_mass += a_linker_mass
-        b1_b[i] = tmp_mass
+    IntenalIonLongBeta = calInternalIon(b_mass_list, site_b, longArmMass)
+    IntenalIonShortBeta = calInternalIon(b_mass_list, site_b, shortArmMass)
+    #############Internal ions mass 1+  cleave at linker and backbone######
 
-    tmp_mass = mpMassTable['Proton'] + mpMassTable['H2O']
-    y1_b = [0] * (pep_b_len - 1)  # y1+ of beta
-    for i in range(pep_b_len - 2, -1, -1):
-        tmp_mass += b_mass_list[i + 1]
-        if i + 1 == site_b:
-            tmp_mass += a_linker_mass
-        y1_b[i] = tmp_mass
-
-    #######################Internal ions mass 1+  cleave at linker and backbone####################
-    In_pepA_long = [0] * (pep_a_len - 1)
-    for i in range(pep_a_len - 1):
-        if i < site_a:
-            In_pepA_long[i] = sum(
-                a_mass_list[i + 1:]) + mpMassTable['H2O'] + longArmMass + 1.0078
-        else:
-            In_pepA_long[i] = sum(a_mass_list[:i + 1]) + longArmMass + 1.0078
-
-    In_pepA_short = [0] * (pep_a_len - 1)
-    for i in range(pep_a_len - 1):
-        if i < site_a:
-            In_pepA_short[i] = sum(
-                a_mass_list[i + 1:]) + mpMassTable['H2O'] + shortArmMass + 1.0078
-        else:
-            In_pepA_short[i] = sum(a_mass_list[:i + 1]) + shortArmMass + 1.0078
-
-    In_pepB_long = [0] * (pep_b_len - 1)
-    for i in range(pep_b_len - 1):
-        if i < site_b:
-            In_pepB_long[i] = sum(
-                b_mass_list[i + 1:]) + mpMassTable['H2O'] + longArmMass + 1.0078
-        else:
-            In_pepB_long[i] = sum(b_mass_list[:i + 1]) + longArmMass + 1.0078
-
-    In_pepB_short = [0] * (pep_b_len - 1)
-    for i in range(pep_b_len - 1):
-        if i < site_b:
-            In_pepB_short[i] = sum(
-                b_mass_list[i + 1:]) + mpMassTable['H2O'] + shortArmMass + 1.0078
-        else:
-            In_pepB_short[i] = sum(b_mass_list[:i + 1]) + shortArmMass + 1.0078
-
-    #######################Internal ions mass 1+  cleave at linker and backbone####################
-
-    return [b1Ion_pep_a, y1Ion_pep_a, b1_b,
-            y1_b], [a_long_mass, a_short_mass, b_long_mass, b_short_mass],\
-                [In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short]
+    return [b1IonPepAlpha, y1IonPepAlpha, b1IonPepBeta, y1IonPepBeta], \
+            [a_long_mass, a_short_mass, b_long_mass, b_short_mass],\
+            [IntenalIonLongAlpha, IntenalIonShortAlpha, IntenalIonLongBeta, IntenalIonShortBeta]
 
 
 def getTargetSpec(spec_path):
@@ -194,7 +170,7 @@ def getTargetSpec(spec_path):
             i = p + 2
     return scanSpecdic
 
-print(getTargetSpec(mgfPath))
+#print(getTargetSpec(mgfPath))
 
 
 def isMatched(mz, spec):
@@ -211,7 +187,25 @@ def generate_ion_mass_range(num):
     deta = num * mstol / 1000000
     return num - deta, num + deta
 
-def match_report(mass_list, spec, max_c):
+
+def isMatchForReport(mz, ms2_dic):
+    mz_list = sorted(list(ms2_dic.keys()))
+    max_ins = max(list(ms2_dic.values()))
+    lowTgtMZ, upTgtMZ = generate_ion_mass_range(mz)
+    if lowTgtMZ > mz_list[-1]:
+        return False
+    else:
+        i = 0
+        while i < len(mz_list):
+            if mz_list[i] < lowTgtMZ:
+                i += 1
+            elif mz_list[i] <= upTgtMZ:
+                return True, mz_list[i], ms2_dic[mz_list[i]]/max_ins
+            else:
+                return False
+
+
+def match_report_ion(mass_list, spec, max_c):
     ms2_dic = {}
     for i in range(len(spec) - 1):
         ms2_mz = float(spec[i][:-1].split(" ")[0])
@@ -220,137 +214,93 @@ def match_report(mass_list, spec, max_c):
     rep_mask = [0] * 4
     match_dic = {}
     mz_list = sorted(list(ms2_dic.keys()))
-    # print(mz_list)
     max_ins = max(list(ms2_dic.values()))
     for c in range(1, max_c + 1):
         mass_cur_list = [(m + 1.0078 * (c - 1)) / c for m in mass_list]
-
-        repo_up_list = []
-        repo_range_dic = {}
-        for mass in mass_cur_list:
-            low_mass, high_mass = generate_ion_mass_range(mass)
-            repo_up_list.append(high_mass)
-            repo_range_dic[mass] = [low_mass, high_mass]
-
-            ft_idx = mass_cur_list.index(mass)
-            ms2_idx = 0
-            while ms2_idx < len(mz_list):
-                if mz_list[ms2_idx] > high_mass:
-                    break
-                elif mz_list[ms2_idx] >= low_mass:
-                    rep_mask[ft_idx] += 1
-                    if ft_idx not in match_dic:
-                        match_dic[ft_idx] = [[
-                            c, mass_cur_list[ft_idx], mz_list[ms2_idx],
-                            ms2_dic[mz_list[ms2_idx]] / max_ins
-                        ]]
-                    else:
-                        match_dic[ft_idx].append([
-                            c, mass_cur_list[ft_idx], mz_list[ms2_idx],
-                            ms2_dic[mz_list[ms2_idx]] / max_ins
-                        ])
-                    break
+        for i in range(len(mass_cur_list)):
+            if isMatchForReport(mass_cur_list[i], ms2_dic):
+                matchedMZ, matchedRelInts = isMatchForReport(mass_cur_list[i], ms2_dic)[1:]
+                rep_mask[i] += 1
+                if i == 0:
+                    fmatched.write('charge=%d\tmz=%f\ttype=Alpha_long_mass\n' % (c, mass_list[i]))
+                elif i == 1:
+                    fmatched.write('charge=%d\tmz=%f\ttype=Alpha_short_mass\n' % (c, mass_list[i]))
+                elif i == 2:
+                    fmatched.write('charge=%d\tmz=%f\ttype=Beta_long_mass\n' % (c, mass_list[i]))
                 else:
-                    ms2_idx += 1
+                    fmatched.write('charge=%d\tmz=%f\ttype=Beta_short_mass\n' % (c, mass_list[i]))
+
+                if i not in match_dic:
+                    match_dic[i]=[[c, mass_cur_list[i], matchedMZ, matchedRelInts]]
+                else:
+                    match_dic[i].append([c, mass_cur_list[i], matchedMZ, matchedRelInts])
     return match_dic
 
 
+def detectPAIRreporter(match_dic, m, n):
+    pairRepIon_list = []
+    if m in match_dic and n in match_dic:
+        chrgm_list = [ele[0] for ele in match_dic[m]]
+        chrgn_list = [ele[0] for ele in match_dic[n]]
+        intsm_list = [ele[-1] for ele in match_dic[m]]
+        intsn_list = [ele[-1] for ele in match_dic[n]]
+    
+        if len(chrgm_list) <= len(chrgn_list):
+            for chg in chrgm_list:
+                if chg in chrgn_list:
+                    ave_ints = (intsm_list[chrgm_list.index(chg)] +
+                                intsn_list[chrgn_list.index(chg)]) / 2
+                    pairRepIon_list.append([chg, ave_ints])
+        else:
+            for chg in chrgn_list:
+                if chg in chrgm_list:
+                    ave_ints = (intsm_list[chrgm_list.index(chg)] +
+                                intsn_list[chrgn_list.index(chg)]) / 2
+                    pairRepIon_list.append([chg, ave_ints])
+    
+    if pairRepIon_list:
+        pairRepIon_list = sorted(pairRepIon_list, key = lambda x:x[-1])
+    
+    return pairRepIon_list
+    
+
 def summary_rep_macthDic(match_dic):
-    pairBeta_list = []
-    if 0 in match_dic and 1 in match_dic:
-        chrg0_list = []
-        chrg1_list = []
-        ints0_list = []
-        ints1_list = []
-        for wd in match_dic[0]:
-            chrg0_list.append(wd[0])
-            ints0_list.append(wd[-1])
-        for wd in match_dic[1]:
-            chrg1_list.append(wd[0])
-            ints1_list.append(wd[-1])
-        xBetaPair_bool = False
-        if len(chrg0_list) <= len(chrg1_list):
-            for chg in chrg0_list:
-                if chg in chrg1_list:
-                    xBetaPair_bool = True
-                    ave_ints = (ints0_list[chrg0_list.index(chg)] +
-                                ints1_list[chrg1_list.index(chg)]) / 2
-                    pairBeta_list.append([chg, ave_ints])
-        else:
-            for chg in chrg1_list:
-                if chg in chrg0_list:
-                    xBetaPair_bool = True
-                    ave_ints = (float(ints0_list[chrg0_list.index(chg)]) +
-                                float(ints1_list[chrg1_list.index(chg)])) / 2
-                    pairBeta_list.append([chg, ave_ints])
-    else:
-        xBetaPair_bool = False
-
-    pairAlpha_list = []
-    if 2 in match_dic and 3 in match_dic:
-        chrg2_list = []
-        chrg3_list = []
-        ints2_list = []
-        ints3_list = []
-        for wd in match_dic[2]:
-            chrg2_list.append(wd[0])
-            ints2_list.append(wd[-1])
-        for wd in match_dic[3]:
-            chrg3_list.append(wd[0])
-            ints3_list.append(wd[-1])
-        xAlphapair_bool = False
-        if len(chrg2_list) <= len(chrg3_list):
-            for chg in chrg2_list:
-                if chg in chrg3_list:
-                    xAlphapair_bool = True
-                    ave_ints = (float(ints2_list[chrg2_list.index(chg)]) +
-                                float(ints3_list[chrg3_list.index(chg)])) / 2
-                    pairAlpha_list.append([chg, ave_ints])
-        else:
-            for chg in chrg3_list:
-                if chg in chrg2_list:
-                    xAlphapair_bool = True
-                    ave_ints = (float(ints2_list[chrg2_list.index(chg)]) +
-                                float(ints3_list[chrg3_list.index(chg)])) / 2
-                    pairAlpha_list.append([chg, ave_ints])
+    pairAlphaRep_list =  detectPAIRreporter(match_dic, 0, 1)
+    pairBetaRep_list =  detectPAIRreporter(match_dic, 2, 3)
+    
+    maxBetaRepInts = "Na"; maxAlphaRepInts = "Na"
+    if pairAlphaRep_list:
+        xAlphapair_bool = True
+        maxAlphaRepInts = pairAlphaRep_list[-1][-1]
     else:
         xAlphapair_bool = False
-
-    detect_bool = False
+    
+    if pairBetaRep_list:
+        xBetaPair_bool = True
+        maxBetaRepInts = pairBetaRep_list[-1][-1]
+    else:
+        xBetaPair_bool = False
+    
     pair_num = [xBetaPair_bool, xAlphapair_bool].count(True)
     if pair_num > 0:
         detect_bool = True
-    rep_ints_beta = "na"
-    if pairBeta_list:
-        pairBeta_ints_list = []
-        for pr in pairBeta_list:
-            pairBeta_ints_list.append(pr[-1])
-        rep_ints_beta = str(max(pairBeta_ints_list))
+    else:
+        detect_bool = False
 
-    rep_ints_alpha = "na"
-    if pairAlpha_list:
-        pairalpha_ints_list = []
-        for pr in pairAlpha_list:
-            pairalpha_ints_list.append(pr[-1])
-        rep_ints_alpha = str(max(pairalpha_ints_list))
-
-    return detect_bool, pair_num, rep_ints_beta, rep_ints_alpha
+    return detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts
 
 
-def cal1pep(common_mask, xlink_mask, b1, y1, site, max_c, length, spec):
+def matchBYions(b1, y1, site, max_c, spec):
+    common_mask = [0] * len(b1)
+    xlink_mask = [0] * len(y1)
+
     for c in range(1, max_c + 1):
-        b_cur = []
-        y_cur = []
-        if c == 1:
-            b_cur = copy.deepcopy(b1)  # 1+ b ion
-            y_cur = copy.deepcopy(y1)  # 1+ y ion
-        else:
-            b_cur = [(m + mpMassTable['Proton'] * (c - 1)) / float(c)
-                     for m in b1]
-            y_cur = [(m + mpMassTable['Proton'] * (c - 1)) / float(c)
-                     for m in y1]
+        b_cur = []; y_cur = []
+        
+        b_cur = [(m + 1.0078 * (c - 1)) / float(c) for m in b1]
+        y_cur = [(m + 1.0078 * (c - 1)) / float(c) for m in y1]
 
-        for i in range(length - 1):
+        for i in range(len(b1)):
             if i < site and isMatched(b_cur[i], spec):
                 common_mask[i] = 1
                 fmatched.write('site=%d\tcharge=%d\tmz=%f\ttype=common_b\n' %
@@ -367,38 +317,10 @@ def cal1pep(common_mask, xlink_mask, b1, y1, site, max_c, length, spec):
                 xlink_mask[i] = 1
                 fmatched.write('site=%d\tcharge=%d\tmz=%f\ttype=xlink_b\n' %
                                (i, c, b_cur[i]))
+    return common_mask, xlink_mask
 
 
-def cal1pepReporter(a_long_mass, a_short_mass, b_long_mass, b_short_mass,
-                    max_c, spec):
-    reP_mask = zeros([4, 1])
-    alm, asm, blm, bsm = a_long_mass, a_short_mass, b_long_mass, b_short_mass
-
-    for c in range(1, max_c + 1):
-        alm = (alm + mpMassTable['Proton'] * (c - 1)) / float(c)
-        asm = (asm + mpMassTable['Proton'] * (c - 1)) / float(c)
-        blm = (blm + mpMassTable['Proton'] * (c - 1)) / float(c)
-        bsm = (bsm + mpMassTable['Proton'] * (c - 1)) / float(c)
-
-        if isMatched(alm, spec):
-            fmatched.write('charge=%d\tmz=%f\ttype=a_long_mass\n' % (c, alm))
-            reP_mask[0] += 1
-
-        if isMatched(asm, spec):
-            fmatched.write('charge=%d\tmz=%f\ttype=a_short_mass\n' % (c, asm))
-            reP_mask[1] += 1
-
-        if isMatched(blm, spec):
-            fmatched.write('charge=%d\tmz=%f\ttype=b_long_mass\n' % (c, blm))
-            reP_mask[2] += 1
-
-        if isMatched(bsm, spec):
-            fmatched.write('charge=%d\tmz=%f\ttype=b_short_mass\n' % (c, bsm))
-            reP_mask[3] += 1
-    return reP_mask
-
-
-def cal1pepIntXP(In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short,spec):
+def matchPepIntXP(In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short, spec):
     max_c = 2
     inPAXL = copy.deepcopy(In_pepA_long)
     inPAXS = copy.deepcopy(In_pepA_short)
@@ -421,6 +343,7 @@ def cal1pepIntXP(In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short,spec):
                 fmatched.write(
                     'site=(%d,AL)\tcharge=%d\tmz=%f\ttype=In_pepA_long\n' %
                     (i, c, inPAXL_cur[i]))
+            
             if isMatched(inPAXS_cur[i], spec):
                 inPAXS_mask[i] += 1
                 fmatched.write(
@@ -446,7 +369,7 @@ def cal1pepIntXP(In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short,spec):
 
 
 def calIonRatio(pep, spec, charge, modCell):
-
+    
     a, b = pep.split('-')
 
     site_a = int(''.join([i for i in a if i.isdigit()])) - 1
@@ -458,12 +381,6 @@ def calIonRatio(pep, spec, charge, modCell):
     pep_a_len = len(a)
     pep_b_len = len(b)
 
-    a_common_mask = [0] * (pep_a_len - 1)
-    a_xlink_mask = [0] * (pep_a_len - 1)
-
-    b_common_mask = [0] * (pep_b_len - 1)
-    b_xlink_mask = [0] * (pep_b_len - 1)
-
     by_ions, reporter_ions, intXPions = getTheroIons(pep, modCell)
 
     b1_a, y1_a, b1_b, y1_b = by_ions
@@ -473,6 +390,7 @@ def calIonRatio(pep, spec, charge, modCell):
 
     ftheo_ions.write('title=%s\tcharge=%s\n' % (pep, charge))
     
+    #print("writing backbone ions")
     ftheo_ions.write('--------alpha backbone ions (alpha b1+)---------\n')
     ftheo_ions.write("\t".join([str(ele)
                                 for ele in b1_a if type(ele) != str]) + "\n")
@@ -489,6 +407,7 @@ def calIonRatio(pep, spec, charge, modCell):
     ftheo_ions.write("\t".join([str(ele)
                                 for ele in y1_b if type(ele) != str]) + "\n")
 
+    #print("writing reporter ions")
     ftheo_ions.write('--------reporter ions (alpha long 1+)---------\n')
     ftheo_ions.write(str(a_long_mass) + "\n")
 
@@ -505,27 +424,27 @@ def calIonRatio(pep, spec, charge, modCell):
 
     fmatched.write('title=%s\n' % (pep))
     fmatched.write('---------alpha---------------\n')
-    cal1pep(a_common_mask, a_xlink_mask, b1_a, y1_a, site_a, max_c, pep_a_len,
-            spec)
+    print("matching alpha peptide b, y ions")
+    a_common_mask, a_xlink_mask = matchBYions(b1_a, y1_a, site_a, max_c, spec)
+
     fmatched.write('common ion matched: ' + str(a_common_mask) + '\n')
     fmatched.write('xlink ion matched: ' + str(a_xlink_mask) + '\n')
 
     fmatched.write('---------beta---------------\n')
-    cal1pep(b_common_mask, b_xlink_mask, b1_b, y1_b, site_b, max_c, pep_b_len,
-            spec)
+    print("matching Beta peptide b, y ions")
+    b_common_mask, b_xlink_mask = matchBYions(b1_b, y1_b, site_b, max_c, spec)
+
     fmatched.write('common ion mached: ' + str(b_common_mask) + '\n')
     fmatched.write('xlink ion matched: ' + str(b_xlink_mask) + '\n')
 
     fmatched.write('---------reporter ions---------------\n')
-    cal1pepReporter(a_long_mass, a_short_mass, b_long_mass, b_short_mass,
-                    max_c, spec)
-    report_mactch_dic = match_report(
-        [b_short_mass, b_long_mass, a_short_mass, a_long_mass], spec, max_c)
-    detect_bool, pair_num, rep_ints_beta, rep_ints_alpha = summary_rep_macthDic(
-        report_mactch_dic)
-
+    print("matching reporter ions")
+    match_dic = match_report_ion(reporter_ions, spec, max_c)
+    detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts = summary_rep_macthDic(match_dic)
+    
     fmatched.write('---------internal PX---------------\n')
-    intPXratio = cal1pepIntXP(In_pepA_long, In_pepA_short, In_pepB_long,
+    print("matching Internal ions")
+    intPXratio = matchPepIntXP(In_pepA_long, In_pepA_short, In_pepB_long,
                            In_pepB_short, spec)
 
     sumCommAlpha = sum(a_common_mask)
@@ -533,12 +452,13 @@ def calIonRatio(pep, spec, charge, modCell):
     sumCommBeta = sum(b_common_mask)
     sumXlinkBeta = sum(b_xlink_mask)
 
-    regular_by_ion_ratio = (sumCommAlpha + sumCommBeta) / float(pep_b_len + pep_a_len - 2)
-    xlink_by_ion_ratio = (sumXlinkAlpha + sumXlinkBeta) / float(pep_b_len + pep_a_len - 2)
+    regular_by_ion_ratio = (sumCommAlpha + sumCommBeta) / (pep_b_len + pep_a_len - 2)
+    xlink_by_ion_ratio = (sumXlinkAlpha + sumXlinkBeta) / (pep_b_len + pep_a_len - 2)
     commByAlpha = sumCommAlpha/(pep_a_len -1)
     commByBeta = sumCommBeta/(pep_b_len - 1)
     
-    return regular_by_ion_ratio, xlink_by_ion_ratio, detect_bool, pair_num, rep_ints_beta, rep_ints_alpha, intPXratio, commByAlpha, commByBeta
+    return regular_by_ion_ratio, xlink_by_ion_ratio, detect_bool, pair_num, \
+        maxBetaRepInts, maxAlphaRepInts, intPXratio, commByAlpha, commByBeta
 
 
 def findMZinmzDic(mz, charge, mzdic):
@@ -577,7 +497,6 @@ def getScanNCE(ms2flpath):
             i += 1
         else:
             scan = int(f[i].split("\t")[1])
-            #print(scan)
             mz = float(f[i].split("\t")[-1])
             charge = f[i+9].split("\t")[1]
             nce = f[i+6].split("\t")[2].split(" ")[7].split("@")[1][3:5]
@@ -652,4 +571,4 @@ for scan in repDic:
     b.write(",".join(wlist)+"\n")
 b.close()
 
-main()
+#main()

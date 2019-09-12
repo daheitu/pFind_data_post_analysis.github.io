@@ -1,24 +1,28 @@
 # coding = utf-8
 
-import os
+import os, sys
 import copy
 from numpy import zeros
+sys.path.append(r"F:\OneDrive\github\pFind_data_post_analysis.github.io\dsso_feature_finder")
+from filter_Reuslt import main
 
-flPath = r"F:\MS_DATA_STORAGE\20190819\multiNCE\BSA_DSSO_INCLU_RANDOM_REVERSE_R1.ms2"
+os.chdir(r"F:\MS_DATA_STORAGE\20190819\multiNCE\inclu_random_reverse")
+
+flPath = r"./BSA_DSSO_INCLU_RANDOM_REVERSE_R1.ms2"
 incluPath = r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.08.19.19.57.19\inclusion_list.csv"
-mgfPath = r"F:\MS_DATA_STORAGE\20190819\multiNCE\BSA_DSSO_INCLU_RANDOM_REVERSE_R1.mgf"
+mgfPath = r"./BSA_DSSO_INCLU_RANDOM_REVERSE_R1.mgf"
 fmatched = open("./matched_info", 'w')
 ftheo_ions = open("./theoretical_ions", 'w')
 
 LinkerMass = 158.004  # 交联剂质量
-LongMass = 85.9826
-ShortMass = 54.0106
+longArmMass = 85.9826
+shortArmMass = 54.0106
 
-mpMassTable={'A':71.037114,'R':156.101111,'N':114.042927,'D':115.026943,'C':103.009185, \
-'E':129.042593,'Q':128.058578,'G':57.021464,'H':137.058912,'I':113.084064, \
-'L':113.084064,'K':128.094963,'M':131.040485,'F':147.068414,'P':97.052764, \
-'S':87.032028,'T':101.047679,'U':150.95363,'W':186.079313,'Y':163.06332,'V':99.068414, \
-'H2O':18.01056,'Proton':1.0072766}
+mpMassTable={'A':71.037114, 'R':156.101111, 'N':114.042927, 'D':115.026943,\
+    'C':103.009185, 'E':129.042593,'Q':128.058578,'G':57.021464, 'H':137.058912,\
+    'I':113.084064, 'L':113.084064,'K':128.094963,'M':131.040485, 'F':147.068414,\
+    'P':97.052764, 'S':87.032028, 'T':101.047679, 'U':150.95363, 'W':186.079313,\
+    'Y':163.06332, 'V':99.068414, 'H2O':18.01056,'Proton':1.0072766}
 
 mpModMass = {
     'Carbamidomethyl[C]': 57.021464,
@@ -26,6 +30,13 @@ mpModMass = {
 }  # 添加的修饰名称及质量
 mstol = 20.0 
 
+
+def calMassPepPlusMod(massList, modMass):
+    pepMass = sum(massList) + mpMassTable['H2O']
+    return  pepMass +  modMass + mpMassTable['Proton']
+
+
+# 根据肽段和修饰生成理论碎片离子
 def getTheroIons(pep, modCell):
     a, b = pep.split('-')
 
@@ -42,20 +53,25 @@ def getTheroIons(pep, modCell):
     b_mod_mass_list = [0] * pep_b_len
 
     if modCell != 'null':
-        mods = modCell.split(';')
-        for m in mods:
+        modList = modCell.split(';')
+        for m in modList:
             name, pos = m[:-1].split('(')
             pos = int(pos)
             if pos <= pep_a_len + 1:
-                pos -= 1
-                if pos == pep_a_len:
-                    pos -= 1
+                pos -= 1             # 与python的index 从0开始对齐
+                if pos == pep_a_len: #考虑修饰在C端的情况此时pos = peptide——A长度
+                    pos -= 1         #超出了list的index，因此减一
+                elif pos == -1:      # 考虑修饰在N端的情况 pos = -1，因此+1，算到第一个氨基酸是
+                    pos += 1
                 a_mod_mass_list[pos] += mpModMass[name]
             else:
                 pos = pos - pep_a_len - 4
                 if pos == -1:
                     pos = 0
+                elif pos == pep_b_len:
+                    pos -= 1
                 b_mod_mass_list[pos] += mpModMass[name]
+
 
     a_mass_list = [0] * pep_a_len  # 残基质量
     b_mass_list = [0] * pep_b_len
@@ -65,24 +81,24 @@ def getTheroIons(pep, modCell):
     for i in range(pep_b_len):
         b_mass_list[i] = mpMassTable[b[i]] + b_mod_mass_list[i]
 
-    #####################reporter ions mass 1+ ###########################################
-    a_long_mass = sum(
-        a_mass_list) + mpMassTable['H2O'] + LongMass + mpMassTable['Proton']
-    a_short_mass = sum(
-        a_mass_list) + mpMassTable['H2O'] + ShortMass + mpMassTable['Proton']
-    b_long_mass = sum(
-        b_mass_list) + mpMassTable['H2O'] + LongMass + mpMassTable['Proton']
-    b_short_mass = sum(
-        b_mass_list) + mpMassTable['H2O'] + ShortMass + mpMassTable['Proton']
-    #########################reporter ions mass 1+ ########################################
+    ################### 4 reporter ions mass 1+ ############################
+    a_long_mass = calMassPepPlusMod(a_mass_list, longArmMass)
 
-    pep_mass = sum(a_mass_list) + mpMassTable['H2O'] + sum(
-        b_mass_list) + mpMassTable['H2O'] + LinkerMass
+    a_short_mass = calMassPepPlusMod(a_mass_list, shortArmMass)
+
+    b_long_mass = calMassPepPlusMod(b_mass_list, longArmMass)
+
+    b_short_mass = calMassPepPlusMod(b_mass_list, shortArmMass)
+    ###################4 reporter ions mass 1+ ############################
+
+    ####regular b,y ions ####
+    pep_mass = a_long_mass + b_short_mass + mpMassTable['H2O']
     a_linker_mass = sum(a_mass_list) + mpMassTable['H2O'] + LinkerMass
     b_linker_mass = sum(b_mass_list) + mpMassTable['H2O'] + LinkerMass
 
     tmp_mass = mpMassTable['Proton']
-    b1Ion_pep_a = [0] * (pep_a_len - 1)  # b1+ of alpha
+    # b1+ of alpha
+    b1Ion_pep_a = [0] * (pep_a_len - 1)  
     for i in range(pep_a_len - 1):
         if i == site_a:
             tmp_mass += b_linker_mass
@@ -121,41 +137,39 @@ def getTheroIons(pep, modCell):
     for i in range(pep_a_len - 1):
         if i < site_a:
             In_pepA_long[i] = sum(
-                a_mass_list[i + 1:]) + mpMassTable['H2O'] + LongMass + 1.0078
+                a_mass_list[i + 1:]) + mpMassTable['H2O'] + longArmMass + 1.0078
         else:
-            In_pepA_long[i] = sum(a_mass_list[:i + 1]) + LongMass + 1.0078
+            In_pepA_long[i] = sum(a_mass_list[:i + 1]) + longArmMass + 1.0078
 
     In_pepA_short = [0] * (pep_a_len - 1)
     for i in range(pep_a_len - 1):
         if i < site_a:
             In_pepA_short[i] = sum(
-                a_mass_list[i + 1:]) + mpMassTable['H2O'] + ShortMass + 1.0078
+                a_mass_list[i + 1:]) + mpMassTable['H2O'] + shortArmMass + 1.0078
         else:
-            In_pepA_short[i] = sum(a_mass_list[:i + 1]) + ShortMass + 1.0078
+            In_pepA_short[i] = sum(a_mass_list[:i + 1]) + shortArmMass + 1.0078
 
     In_pepB_long = [0] * (pep_b_len - 1)
     for i in range(pep_b_len - 1):
         if i < site_b:
             In_pepB_long[i] = sum(
-                b_mass_list[i + 1:]) + mpMassTable['H2O'] + LongMass + 1.0078
+                b_mass_list[i + 1:]) + mpMassTable['H2O'] + longArmMass + 1.0078
         else:
-            In_pepB_long[i] = sum(b_mass_list[:i + 1]) + LongMass + 1.0078
+            In_pepB_long[i] = sum(b_mass_list[:i + 1]) + longArmMass + 1.0078
 
     In_pepB_short = [0] * (pep_b_len - 1)
     for i in range(pep_b_len - 1):
         if i < site_b:
             In_pepB_short[i] = sum(
-                b_mass_list[i + 1:]) + mpMassTable['H2O'] + ShortMass + 1.0078
+                b_mass_list[i + 1:]) + mpMassTable['H2O'] + shortArmMass + 1.0078
         else:
-            In_pepB_short[i] = sum(b_mass_list[:i + 1]) + ShortMass + 1.0078
+            In_pepB_short[i] = sum(b_mass_list[:i + 1]) + shortArmMass + 1.0078
 
     #######################Internal ions mass 1+  cleave at linker and backbone####################
 
     return [b1Ion_pep_a, y1Ion_pep_a, b1_b,
             y1_b], [a_long_mass, a_short_mass, b_long_mass, b_short_mass],\
                 [In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short]
-
-print(getTheroIons("KVPQVSTPTLVEVSR(1)-KVPQVSTPTLVEVSR(1)", "null"))
 
 
 def getTargetSpec(spec_path):
@@ -384,8 +398,8 @@ def cal1pepReporter(a_long_mass, a_short_mass, b_long_mass, b_short_mass,
     return reP_mask
 
 
-def cal1pepIntXP(In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short,
-                 max_c, spec):
+def cal1pepIntXP(In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short,spec):
+    max_c = 2
     inPAXL = copy.deepcopy(In_pepA_long)
     inPAXS = copy.deepcopy(In_pepA_short)
     inPBXL = copy.deepcopy(In_pepB_long)
@@ -422,7 +436,7 @@ def cal1pepIntXP(In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short,
             if isMatched(inPBXS_cur[i], spec):
                 inPBXS_mask[i] += 1
                 fmatched.write(
-                    'site=(%d,BS)\tcharge=%d\tmz=%f\In_pepB_short\n' %
+                    'site=(%d,BS)\tcharge=%d\tmz=%f\tIn_pepB_short\n' %
                     (i, c, inPBXS_cur[i]))
 
     total_unmat = inPAXL_mask.count(0) + inPAXS_mask.count(
@@ -512,7 +526,7 @@ def calIonRatio(pep, spec, charge, modCell):
 
     fmatched.write('---------internal PX---------------\n')
     intPXratio = cal1pepIntXP(In_pepA_long, In_pepA_short, In_pepB_long,
-                           In_pepB_short, max_c, spec)
+                           In_pepB_short, spec)
 
     sumCommAlpha = sum(a_common_mask)
     sumXlinkAlpha = sum(a_xlink_mask)
@@ -521,8 +535,10 @@ def calIonRatio(pep, spec, charge, modCell):
 
     regular_by_ion_ratio = (sumCommAlpha + sumCommBeta) / float(pep_b_len + pep_a_len - 2)
     xlink_by_ion_ratio = (sumXlinkAlpha + sumXlinkBeta) / float(pep_b_len + pep_a_len - 2)
+    commByAlpha = sumCommAlpha/(pep_a_len -1)
+    commByBeta = sumCommBeta/(pep_b_len - 1)
     
-    return regular_by_ion_ratio, xlink_by_ion_ratio, detect_bool, pair_num, rep_ints_beta, rep_ints_alpha, intPXratio
+    return regular_by_ion_ratio, xlink_by_ion_ratio, detect_bool, pair_num, rep_ints_beta, rep_ints_alpha, intPXratio, commByAlpha, commByBeta
 
 
 def findMZinmzDic(mz, charge, mzdic):
@@ -585,32 +601,37 @@ def getmzPepMod(incluPath):
     return mzPepModDic
 
 
+def linkscanNCEmzPepMod():
+    scanNCEdic = getScanNCE(flPath)
+    mzPepModDic = getmzPepMod(incluPath)
+    delScans = []
+    for scan in scanNCEdic:
+        realMZ, charge = scanNCEdic[scan][:2]
+        judgeBool = findMZinmzDic(realMZ, charge, mzPepModDic)
+        if judgeBool:
+            scanNCEdic[scan].extend(judgeBool)
+        else:
+            print(scan, realMZ, charge)
+            delScans.append(scan)
+    for scan in delScans:
+        del scanNCEdic[scan]
+    return scanNCEdic
 
-scanNCEdic = getScanNCE(flPath)
 
-mzPepModDic = getmzPepMod(incluPath)
-
-for scan in scanNCEdic:
-    realMZ, charge = scanNCEdic[scan][:2]
-    judgeBool = findMZinmzDic(realMZ, charge, mzPepModDic)
-    if judgeBool:
-        scanNCEdic[scan].extend(judgeBool)
-    else:
-        print(scan, realMZ, charge)
-
+scanNCEdic = linkscanNCEmzPepMod()
 
 repDic = {}
 scanSpecdic = getTargetSpec(mgfPath)
 for scan in scanNCEdic:
     ttl = scanNCEdic[scan]
-    print(scan)
+    #print(scan, ttl)
     pep = ttl[3]
     modCell = ttl[4]
     charge = int(ttl[1])
     nce = ttl[2]
     
     spec = scanSpecdic[scan]
-#def calIonRatio(pep, spec, charge, modCell):
+
     extendInfo = calIonRatio(pep, spec, charge, modCell)
     ttl.extend(extendInfo)
     ttl.insert(0, scan)
@@ -619,10 +640,10 @@ for scan in scanNCEdic:
 fmatched.close()
 ftheo_ions.close()
 
-b = open("reportFile.csv", 'w')
+b = open("reportFile_commBY.csv", 'w')
 b.write("scan, mz, charge, nce, pep, mods, regular_by_ion_ratio,\
      xlink_by_ion_ratio, detect_bool, pair_num, rep_ints_beta,\
-         rep_ints_alpha, intPXratio" + "\n")
+         rep_ints_alpha, intPXratio, commBYalpha, commBYbeta" + "\n")
 #nceList = sorted(list(repDic.keys()))
 #for nce in nceList:
 #scanList = 
@@ -630,3 +651,5 @@ for scan in repDic:
     wlist = [str(ele) for ele in repDic[scan]]
     b.write(",".join(wlist)+"\n")
 b.close()
+
+main()

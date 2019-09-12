@@ -7,7 +7,7 @@ import os
 import re 
 
 os.chdir(
-    r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.08.26.13.00.31\reports"
+    r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.07.15.10.26.16_BSA_DSSO_R3\reports"
 )
 spec_cutoff = 0  # spectra number cut-off
 Best_evalue_cutoff = 2
@@ -55,14 +55,16 @@ def site_list_process(site_list, pepXLlist):
     else:
         link_type_list = []
         for i in range(len(site_list)):
-            #boolInter = False
+            boolInter = False
             for j in range(len(pepXLlist)):
                 if judgeHomoHetro(site_list[i], pepXLlist[j]) == "Inter":
-                    link_type_list.append("Inter")
+                    boolInter = True
                     break
                 else:
                     continue
-            if j == len(pepXLlist)-1:
+            if boolInter:
+                link_type_list.append("Inter")
+            else:
                 link_type_list.append("Intra")
         linkType = "/".join(link_type_list)
         site = "/".join(site_list)

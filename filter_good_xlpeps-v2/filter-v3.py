@@ -7,7 +7,7 @@ Created on Sun Apr 28 15:52:57 2019
 import os
 from scipy.stats import norm
 
-path = r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.08.19.19.57.19"
+path = r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.25.07.53.36_Lacto_DSSO_PREid"
 
 pLink2_id_folder = path
 inclusion_list = os.path.join(path, 'inclusion_list.csv')
@@ -77,7 +77,7 @@ def ExtractMGFTitle3(strPathIn):
 
 
 # 读取ms1，输出dict, key=scan, value=rt
-def readMS1(path):#z
+def readMS1(path):  #z
     fin = open(path)
     lines = fin.readlines()
     fin.close()

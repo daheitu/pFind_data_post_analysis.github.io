@@ -4,10 +4,10 @@ This script can help you to summary the plink2 report file
 """
 
 import os
-import re 
+import re
 
 os.chdir(
-    r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.07.15.10.26.16_BSA_DSSO_R3\reports"
+    r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.24.21.18.43_Integrin_LTG\reports"
 )
 spec_cutoff = 0  # spectra number cut-off
 Best_evalue_cutoff = 2
@@ -32,10 +32,13 @@ def judgeHomoHetro(linked_site, pepXL):
         m1 = pepXL.find("(" + linkPosPep1 + ")")
         n1 = pepXL.find("(" + linkPosPep2 + ")", p1)
         pep1 = pepXL[:m1]
-        pep2 = pepXL[p1 + 2: n1]
-        deltaList = [int(position1) - int(linkPosPep1), int(position2) - int(linkPosPep2)]
-        pep1IDX = [1+deltaList[0], len(pep1)+ deltaList[0]]
-        pep2IDX = [1+deltaList[1], len(pep2)+ deltaList[1]]
+        pep2 = pepXL[p1 + 2:n1]
+        deltaList = [
+            int(position1) - int(linkPosPep1),
+            int(position2) - int(linkPosPep2)
+        ]
+        pep1IDX = [1 + deltaList[0], len(pep1) + deltaList[0]]
+        pep2IDX = [1 + deltaList[1], len(pep2) + deltaList[1]]
         if pep1IDX[1] < pep2IDX[0] or pep1IDX[0] > pep2IDX[1]:
             return "Intra"
         else:
@@ -69,13 +72,13 @@ def site_list_process(site_list, pepXLlist):
         linkType = "/".join(link_type_list)
         site = "/".join(site_list)
         return site, linkType
-    
+
 
 def get_report_file_name():
     path = os.getcwd()
     path_d = os.path.dirname(path)
     os.chdir(path_d)
-    
+
     file_list = os.listdir(path_d)
     for fl in file_list:
         if fl[-5:] in ["pfind", "plink"]:
@@ -121,7 +124,8 @@ def get_crosslink_site_info(site_table, b):
 
 
 def cal_sumOfOneColumn(openedfl, k_column):
-    f = openedfl; k = k_column
+    f = openedfl
+    k = k_column
     sumNum = 0
     for line in f[1:]:
         lineList = line.rstrip("\n").split("\t")
@@ -132,16 +136,17 @@ def cal_sumOfOneColumn(openedfl, k_column):
 
 
 def cal_numRange(openedfl, k_column):
-    f = openedfl; k = k_column
+    f = openedfl
+    k = k_column
     valList = []
     for line in f[1:]:
         lineList = line.rstrip("\n").split("\t")
         val = lineList[k]
         if val:
             valList.append(val)
-    newList = sorted(valList, key = lambda x: float(x))
+    newList = sorted(valList, key=lambda x: float(x))
     return newList[0] + "--" + newList[-1]
-    
+
 
 def statistic_report_file():
     report_file_name = get_report_file_name()
@@ -169,7 +174,7 @@ def statistic_report_file():
 
     for j in range(7, total_colom, 3):
         col_dic[j] = cal_numRange(rep_table, j)
-        
+
     last = []
     for k in range(total_colom):
         last.append(str(col_dic[k]))
@@ -209,9 +214,9 @@ def splitResult(openedfl, raw_name_list):
             p = n + 1
         else:
             print(n)
-        
+
         cell1 = f[p].rstrip("\n").split(",")[0]
-        
+
         if cell1.isdigit():
             pass
         else:
@@ -221,9 +226,9 @@ def splitResult(openedfl, raw_name_list):
                     break
                 else:
                     if line_list[0] == "SameSet":
-                        site_list.append(line_list[1])              
+                        site_list.append(line_list[1])
                     p += 1
-        
+
         site = site_list_process(site_list, ["WFC(2)-XSV(2)"])[0]
         if site == "":
             while p < len(f):
@@ -233,8 +238,8 @@ def splitResult(openedfl, raw_name_list):
                     p += 1
         else:
             bestSVMscore = f[p].rstrip("\n").split(",")[9]
-            pep_std_list = [] # f[p].rstrip("\n").split(",")[5]
-            while p < len(f): # and f[p].rstrip("\n").split(",")[0] == "":
+            pep_std_list = []  # f[p].rstrip("\n").split(",")[5]
+            while p < len(f):  # and f[p].rstrip("\n").split(",")[0] == "":
                 line_list = f[p].rstrip("\n").split(",")
                 if line_list[0].isdigit():
                     break
@@ -242,17 +247,17 @@ def splitResult(openedfl, raw_name_list):
                     pep_std = line_list[5]
                     if pep_std not in pep_std_list:
                         pep_std_list.append(pep_std)
-        
+
                     evalue = line_list[8]
                     if float(evalue) < E_value_cutoff_SpecLvl:
                         pep = line_list[5]
-                        raw_name = line_list[2][:line_list[2].find(".")]                        
+                        raw_name = line_list[2][:line_list[2].find(".")]
                         if raw_name not in spec_dic:
                             spec_dic[raw_name] = 1
                         else:
                             spec_dic[raw_name] += 1
 
-                        if raw_name not in pep_dic: 
+                        if raw_name not in pep_dic:
                             pep_dic[raw_name] = [pep]
                         else:
                             if pep not in pep_dic[raw_name]:
@@ -276,15 +281,19 @@ def splitResult(openedfl, raw_name_list):
                     min_evalue = evalue_dic[key]
                 else:
                     continue
-            if total_spec > spec_cutoff and float(min_evalue) < Best_evalue_cutoff:
+            if total_spec > spec_cutoff and float(
+                    min_evalue) < Best_evalue_cutoff:
                 rep_list = [site, total_spec, min_evalue,\
                     bestSVMscore, totalPep, link_type]
-                
+
                 for raw in raw_name_list:
                     if raw not in spec_dic:
                         SEP = ["", "", ""]
                     else:
-                        SEP = [spec_dic[raw], evalue_dic[raw], len(pep_dic[raw])]
+                        SEP = [
+                            spec_dic[raw], evalue_dic[raw],
+                            len(pep_dic[raw])
+                        ]
                     rep_list.extend(SEP)
 
                 finalList.append("\t".join([str(ele) for ele in rep_list]))
@@ -310,7 +319,9 @@ def main():
     b = open(report_file_name, 'w')
     raw_name_list = get_crosslink_site_info(f, b)
     finalList = splitResult(f, raw_name_list)
-    finalList = sorted(finalList, key = lambda x: int(x.split("\t")[1]), reverse = True)
+    finalList = sorted(finalList,
+                       key=lambda x: int(x.split("\t")[1]),
+                       reverse=True)
     for line in finalList:
         b.write(line + "\n")
     b.close()

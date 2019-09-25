@@ -1,6 +1,6 @@
 # coding = utf-8
 
-import os, sys
+import os, sys, time
 import copy
 from numpy import zeros
 sys.path.append(r"F:\OneDrive\github\pFind_data_post_analysis.github.io\dsso_feature_finder")
@@ -11,8 +11,6 @@ os.chdir(r"F:\MS_DATA_STORAGE\20190819\multiNCE\inclu_random_reverse")
 flPath = r"./BSA_DSSO_INCLU_RANDOM_REVERSE_R1.ms2"
 incluPath = r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.08.19.19.57.19\inclusion_list.csv"
 mgfPath = r"./BSA_DSSO_INCLU_RANDOM_REVERSE_R1.mgf"
-fmatched = open("./matched_info", 'w')
-ftheo_ions = open("./theoretical_ions", 'w')
 
 LinkerMass = 158.004  # 交联剂质量
 longArmMass = 85.9826
@@ -22,7 +20,7 @@ mpMassTable={'A':71.037114, 'R':156.101111, 'N':114.042927, 'D':115.026943,\
     'C':103.009185, 'E':129.042593,'Q':128.058578,'G':57.021464, 'H':137.058912,\
     'I':113.084064, 'L':113.084064,'K':128.094963,'M':131.040485, 'F':147.068414,\
     'P':97.052764, 'S':87.032028, 'T':101.047679, 'U':150.95363, 'W':186.079313,\
-    'Y':163.06332, 'V':99.068414, 'H2O':18.01056,'Proton':1.00782}
+    'Y':163.06332, 'V':99.068414, 'H2O':18.01056,'H1':1.00782}
 
 mpModMass = {
     'Carbamidomethyl[C]': 57.021464,
@@ -33,14 +31,14 @@ mstol = 20.0
 
 def calMassPepPlusMod(massList, modMass):
     pepMass = sum(massList) + mpMassTable['H2O']
-    return  pepMass +  modMass + mpMassTable['Proton']
+    return  pepMass +  modMass + mpMassTable['H1']
 
 
 def calPepBYions(massList, linkSite, linkAddMass):
     pepMass = sum(massList) + mpMassTable['H2O'] + linkAddMass\
-         + 2 * mpMassTable['Proton']
+         + 2 * mpMassTable['H1']
     pep_len = len(massList)
-    tmp_mass = mpMassTable['Proton']
+    tmp_mass = mpMassTable['H1']
     b1Ion_pep = [0] * (pep_len - 1)
     y1Ion_pep = [0] * (pep_len - 1)
     for i in range(pep_len - 1):
@@ -170,24 +168,30 @@ def getTargetSpec(spec_path):
             i = p + 2
     return scanSpecdic
 
-#print(getTargetSpec(mgfPath))
-
 
 def isMatched(mz, spec):
+    lowTgtMZ, upTgtMZ = generate_ion_mass_range(mz)
     for i in range(len(spec)):
         if 'END' in spec[i]:
             break
         exp_mz = float(spec[i].split(' ')[0])
-        if abs((exp_mz - mz) / mz) * 1000000.0 <= mstol:
+        if exp_mz > upTgtMZ:
+            break
+        elif exp_mz >= lowTgtMZ:
             return True
+        else:
+            continue
+    
     return False
 
 
+#生成给定mz的容忍的上下质量区间
 def generate_ion_mass_range(num):
     deta = num * mstol / 1000000
     return num - deta, num + deta
 
 
+# 对给定MZ。计算是否在谱图中出现，如果出现，返回匹配值和其强度
 def isMatchForReport(mz, ms2_dic):
     mz_list = sorted(list(ms2_dic.keys()))
     max_ins = max(list(ms2_dic.values()))
@@ -205,7 +209,8 @@ def isMatchForReport(mz, ms2_dic):
                 return False
 
 
-def match_report_ion(mass_list, spec, max_c):
+#对给定的报告离子的1+质量列表，计算多价态下其是否存在，并写入匹配文件
+def match_report_ion(mass_list, spec, max_c, fmatched):
     ms2_dic = {}
     for i in range(len(spec) - 1):
         ms2_mz = float(spec[i][:-1].split(" ")[0])
@@ -237,6 +242,7 @@ def match_report_ion(mass_list, spec, max_c):
     return match_dic
 
 
+#对于报告离子的matchdic，检测是否成对
 def detectPAIRreporter(match_dic, m, n):
     pairRepIon_list = []
     if m in match_dic and n in match_dic:
@@ -268,18 +274,15 @@ def summary_rep_macthDic(match_dic):
     pairAlphaRep_list =  detectPAIRreporter(match_dic, 0, 1)
     pairBetaRep_list =  detectPAIRreporter(match_dic, 2, 3)
     
+    xAlphapair_bool = False; xBetaPair_bool = False
     maxBetaRepInts = "Na"; maxAlphaRepInts = "Na"
     if pairAlphaRep_list:
         xAlphapair_bool = True
         maxAlphaRepInts = pairAlphaRep_list[-1][-1]
-    else:
-        xAlphapair_bool = False
     
     if pairBetaRep_list:
         xBetaPair_bool = True
         maxBetaRepInts = pairBetaRep_list[-1][-1]
-    else:
-        xBetaPair_bool = False
     
     pair_num = [xBetaPair_bool, xAlphapair_bool].count(True)
     if pair_num > 0:
@@ -290,7 +293,7 @@ def summary_rep_macthDic(match_dic):
     return detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts
 
 
-def matchBYions(b1, y1, site, max_c, spec):
+def matchBYions(b1, y1, site, max_c, spec, fmatched):
     common_mask = [0] * len(b1)
     xlink_mask = [0] * len(y1)
 
@@ -317,10 +320,12 @@ def matchBYions(b1, y1, site, max_c, spec):
                 xlink_mask[i] = 1
                 fmatched.write('site=%d\tcharge=%d\tmz=%f\ttype=xlink_b\n' %
                                (i, c, b_cur[i]))
+    fmatched.write('common ion matched: ' + str(common_mask) + '\n')
+    fmatched.write('xlink ion matched: ' + str(xlink_mask) + '\n')
     return common_mask, xlink_mask
 
 
-def matchPepIntXP(In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short, spec):
+def matchPepIntXP(In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short, spec, fmatched):
     max_c = 2
     inPAXL = copy.deepcopy(In_pepA_long)
     inPAXS = copy.deepcopy(In_pepA_short)
@@ -341,25 +346,25 @@ def matchPepIntXP(In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short, spec
             if isMatched(inPAXL_cur[i], spec):
                 inPAXL_mask[i] += 1
                 fmatched.write(
-                    'site=(%d,AL)\tcharge=%d\tmz=%f\ttype=In_pepA_long\n' %
+                    'site=(%d, AL)\tcharge=%d\tmz=%f\ttype=In_pepA_long\n' %
                     (i, c, inPAXL_cur[i]))
             
             if isMatched(inPAXS_cur[i], spec):
                 inPAXS_mask[i] += 1
                 fmatched.write(
-                    'site=(%d,AS)\tcharge=%d\tmz=%f\ttype=In_pepA_short\n' %
+                    'site=(%d, AS)\tcharge=%d\tmz=%f\ttype=In_pepA_short\n' %
                     (i, c, inPAXS_cur[i]))
 
         for i in range(len(inPBXL_cur)):
             if isMatched(inPBXL_cur[i], spec):
                 inPBXL_mask[i] += 1
                 fmatched.write(
-                    'site=(%d,BL)\tcharge=%d\tmz=%f\tIn_pepB_long\n' %
+                    'site=(%d, BL)\tcharge=%d\tmz=%f\ttype=In_pepB_long\n' %
                     (i, c, inPBXL_cur[i]))
             if isMatched(inPBXS_cur[i], spec):
                 inPBXS_mask[i] += 1
                 fmatched.write(
-                    'site=(%d,BS)\tcharge=%d\tmz=%f\tIn_pepB_short\n' %
+                    'site=(%d, BS)\tcharge=%d\tmz=%f\ttype=In_pepB_short\n' %
                     (i, c, inPBXS_cur[i]))
 
     total_unmat = inPAXL_mask.count(0) + inPAXS_mask.count(
@@ -368,29 +373,14 @@ def matchPepIntXP(In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short, spec
     return intXP_ratio  # , [inPAXL_mask, inPAXS_mask, inPBXL_mask, inPBXS_mask]
 
 
-def calIonRatio(pep, spec, charge, modCell):
-    
-    a, b = pep.split('-')
-
-    site_a = int(''.join([i for i in a if i.isdigit()])) - 1
-    site_b = int(''.join([i for i in b if i.isdigit()])) - 1
-
-    a = ''.join([i for i in a if i.isalpha()])
-    b = ''.join([i for i in b if i.isalpha()])
-
-    pep_a_len = len(a)
-    pep_b_len = len(b)
-
-    by_ions, reporter_ions, intXPions = getTheroIons(pep, modCell)
-
+def writeTheorIon(pep, mod, by_ions, reporter_ions, intXPions, ftheo_ions):
     b1_a, y1_a, b1_b, y1_b = by_ions
+
     a_long_mass, a_short_mass, b_long_mass, b_short_mass = reporter_ions
 
     In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short = intXPions
 
-    ftheo_ions.write('title=%s\tcharge=%s\n' % (pep, charge))
-    
-    #print("writing backbone ions")
+    ftheo_ions.write('XLPeptide=%s\tmodification=%s\n' % (pep, mod))
     ftheo_ions.write('--------alpha backbone ions (alpha b1+)---------\n')
     ftheo_ions.write("\t".join([str(ele)
                                 for ele in b1_a if type(ele) != str]) + "\n")
@@ -405,9 +395,8 @@ def calIonRatio(pep, spec, charge, modCell):
 
     ftheo_ions.write('--------beta backbone ions (beta y1+)---------\n')
     ftheo_ions.write("\t".join([str(ele)
-                                for ele in y1_b if type(ele) != str]) + "\n")
+                                 for ele in y1_b if type(ele) != str]) + "\n")
 
-    #print("writing reporter ions")
     ftheo_ions.write('--------reporter ions (alpha long 1+)---------\n')
     ftheo_ions.write(str(a_long_mass) + "\n")
 
@@ -420,32 +409,43 @@ def calIonRatio(pep, spec, charge, modCell):
     ftheo_ions.write('--------reporter ions (beta short 1+)---------\n')
     ftheo_ions.write(str(b_short_mass) + "\n")
 
+
+def calIonRatio(pep, spec, charge, modCell, pepModToTheoIonDic, fmatched):
+    a, b = pep.split('-')
+
+    site_a = int(''.join([i for i in a if i.isdigit()])) - 1
+    site_b = int(''.join([i for i in b if i.isdigit()])) - 1
+
+    a = ''.join([i for i in a if i.isalpha()])
+    b = ''.join([i for i in b if i.isalpha()])
+
+    pep_a_len = len(a)
+    pep_b_len = len(b)
+
     max_c = min(3, charge)
 
-    fmatched.write('title=%s\n' % (pep))
-    fmatched.write('---------alpha---------------\n')
-    print("matching alpha peptide b, y ions")
-    a_common_mask, a_xlink_mask = matchBYions(b1_a, y1_a, site_a, max_c, spec)
+    by_ions, reporter_ions, intXPions = pepModToTheoIonDic[(pep, modCell)]
+    
+    b1_a, y1_a, b1_b, y1_b = by_ions
+    a_long_mass, a_short_mass, b_long_mass, b_short_mass = reporter_ions
 
-    fmatched.write('common ion matched: ' + str(a_common_mask) + '\n')
-    fmatched.write('xlink ion matched: ' + str(a_xlink_mask) + '\n')
+    In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short = intXPions
+
+    fmatched.write('XLpep=%s\tmod=%s\tcharge=%d\n' % (pep, modCell, charge))
+    fmatched.write('---------alpha---------------\n')
+    a_common_mask, a_xlink_mask = matchBYions(b1_a, y1_a, site_a, max_c, spec, fmatched)
+
 
     fmatched.write('---------beta---------------\n')
-    print("matching Beta peptide b, y ions")
-    b_common_mask, b_xlink_mask = matchBYions(b1_b, y1_b, site_b, max_c, spec)
-
-    fmatched.write('common ion mached: ' + str(b_common_mask) + '\n')
-    fmatched.write('xlink ion matched: ' + str(b_xlink_mask) + '\n')
+    b_common_mask, b_xlink_mask = matchBYions(b1_b, y1_b, site_b, max_c, spec, fmatched)
 
     fmatched.write('---------reporter ions---------------\n')
-    print("matching reporter ions")
-    match_dic = match_report_ion(reporter_ions, spec, max_c)
+    match_dic = match_report_ion(reporter_ions, spec, max_c, fmatched)
     detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts = summary_rep_macthDic(match_dic)
     
     fmatched.write('---------internal PX---------------\n')
-    print("matching Internal ions")
     intPXratio = matchPepIntXP(In_pepA_long, In_pepA_short, In_pepB_long,
-                           In_pepB_short, spec)
+                           In_pepB_short, spec, fmatched)
 
     sumCommAlpha = sum(a_common_mask)
     sumXlinkAlpha = sum(a_xlink_mask)
@@ -500,7 +500,6 @@ def getScanNCE(ms2flpath):
             mz = float(f[i].split("\t")[-1])
             charge = f[i+9].split("\t")[1]
             nce = f[i+6].split("\t")[2].split(" ")[7].split("@")[1][3:5]
-            #print(charge)
             scanNCEdic[scan] = [mz, charge, nce]
             i += 10
     return scanNCEdic
@@ -520,6 +519,19 @@ def getmzPepMod(incluPath):
     return mzPepModDic
 
 
+def pepModToTheoIon(mzPepModDic, ftheo_ions):
+    pepModToTheoIonDic = {}
+    pepModList = []
+    for key in mzPepModDic:
+        [pep, mod] = mzPepModDic[key]
+        if (pep, mod) not in pepModToTheoIonDic:
+            by_ions, reporter_ions, intXPions = getTheroIons(pep, mod)
+            pepModToTheoIonDic[pep, mod] = [by_ions, reporter_ions, intXPions]
+            writeTheorIon(pep, mod, by_ions, reporter_ions, intXPions, ftheo_ions)
+
+    return pepModToTheoIonDic
+
+
 def linkscanNCEmzPepMod():
     scanNCEdic = getScanNCE(flPath)
     mzPepModDic = getmzPepMod(incluPath)
@@ -537,38 +549,48 @@ def linkscanNCEmzPepMod():
     return scanNCEdic
 
 
-scanNCEdic = linkscanNCEmzPepMod()
+def main():
+    bg_time = time.localtime(time.time())
 
-repDic = {}
-scanSpecdic = getTargetSpec(mgfPath)
-for scan in scanNCEdic:
-    ttl = scanNCEdic[scan]
-    #print(scan, ttl)
-    pep = ttl[3]
-    modCell = ttl[4]
-    charge = int(ttl[1])
-    nce = ttl[2]
-    
-    spec = scanSpecdic[scan]
+    fmatched = open("./matched_info", 'w')
+    ftheo_ions = open("./theoretical_ions", 'w')
+    mzPepModDic = getmzPepMod(incluPath)
+    pepModToTheoIonDic = pepModToTheoIon(mzPepModDic, ftheo_ions)
+    scanNCEdic = linkscanNCEmzPepMod()
 
-    extendInfo = calIonRatio(pep, spec, charge, modCell)
-    ttl.extend(extendInfo)
-    ttl.insert(0, scan)
-    repDic[scan] = ttl
+    repDic = {}
+    scanSpecdic = getTargetSpec(mgfPath)
+    for scan in scanNCEdic:
+        ttl = scanNCEdic[scan]
+        print(scan)
+        pep = ttl[3]
+        modCell = ttl[4]
+        charge = int(ttl[1])
+        nce = ttl[2]
+        
+        spec = scanSpecdic[scan]
 
-fmatched.close()
-ftheo_ions.close()
+        extendInfo = calIonRatio(pep, spec, charge, modCell, pepModToTheoIonDic, fmatched)
+        ttl.extend(extendInfo)
+        ttl.insert(0, scan)
+        repDic[scan] = ttl
 
-b = open("reportFile_commBY.csv", 'w')
-b.write("scan, mz, charge, nce, pep, mods, regular_by_ion_ratio,\
-     xlink_by_ion_ratio, detect_bool, pair_num, rep_ints_beta,\
-         rep_ints_alpha, intPXratio, commBYalpha, commBYbeta" + "\n")
-#nceList = sorted(list(repDic.keys()))
-#for nce in nceList:
-#scanList = 
-for scan in repDic:
-    wlist = [str(ele) for ele in repDic[scan]]
-    b.write(",".join(wlist)+"\n")
-b.close()
+    fmatched.close()
+    ftheo_ions.close()
 
+    b = open("reportFile_commBY.csv", 'w')
+    b.write("scan, mz, charge, nce, pep, mods, regular_by_ion_ratio,\
+        xlink_by_ion_ratio, detect_bool, pair_num, rep_ints_beta,\
+            rep_ints_alpha, intPXratio, commBYalpha, commBYbeta" + "\n")
+
+    for scan in repDic:
+        wlist = [str(ele) for ele in repDic[scan]]
+        b.write(",".join(wlist)+"\n")
+    b.close()
+
+    endTime = time.localtime(time.time())
+    print(bg_time,"\n", endTime)
+
+if __name__ == '__main__':
+    main()
 #main()

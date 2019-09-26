@@ -1,52 +1,67 @@
 # coding = utf-8
 
-## created by Yong Cao
+## created by Yong Cao, 20190926
 
 
 import os
 
-os.chdir(r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.24.21.18.43_Integrin_LTG\reports")
+os.chdir(r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.24.21.37.35_Integrin_PK\reports")
 
 
-def reportXLfile(openedXLfile, flTOwrt):
+def continueLines(starPos, f, numSpec):
+    bestSVM = f[starPos].split(",")[9]
+    pep = f[starPos].split(",")[5]
+    spec1 = f[starPos].split(",")[2]
+    if int(numSpec) > 1:
+        spec2 = f[starPos + 1].split(",")[2]
+    else:
+        spec2 = ""
+    evalueList = []
+    p = starPos
+    while p < len(f):
+        if len(f[p].split(",")) == 4:
+            break
+        else:
+            evalue = float(f[p].split(",")[8])
+            evalueList.append(evalue)
+            p += 1
+    bestEvale = str(min(evalueList))
+    endPos = p
+    return bestSVM, bestEvale, pep, spec1, spec2, endPos
+
+
+def removeConProt(linkSiteList):
+    k = 0
+    while k < len(linkSiteList):
+        if "CON_" in linkSiteList[k]:
+            del linkSiteList[k]
+        else:
+            k += 1
+
+
+def reportXLfile(openedXLfile, flTOwrt, linktype):
     f = openedXLfile; b = flTOwrt
     i = 2
     while i < len(f):
+        print(i)
         lineList = f[i].split(",")
-        if len(lineList) == 4:
-            linkPair = [lineList[1]]
-            if "SameSet" in f[i+1] or "SubSet" in f[i+1]:
-                m = i + 1
-                while m < len(f):
-                    
-                linkPair.append(f[i+1].split(",")[1])
-                i += 1
-            else:
-                numSpec = lineList[-1].strip()
-                bestSVM = f[i+1].split(",")[9]
-                pep = f[i+1].split(",")[5]
-                spec1 = f[i+1].split(",")[2]
-                if int(numSpec) > 1:
-                    spec2 = f[i+2].split(",")[2]
+        linkPair = [lineList[1]]
+        numSpec = lineList[-1].strip()
+        m = i + 1
+        if "SameSet" in f[m] or "SubSet" in f[m]:
+            while m < len(f):
+                if f[m].split(",")[0] == "":
+                    break
                 else:
-                    spec2 = ""
-                evalueList = []
-                p = i + 1
-                while p < len(f):
-                    if len(f[p].split(",")) == 4:
-                        break
-                    else:
-                        evalue = float(f[p].split(",")[8])
-                        evalueList.append(evalue)
-                        p += 1
-                bestEvale = str(min(evalueList))
-                i = p
-                site = "|".join(linkPair)
-                wList = [site, numSpec, bestEvale, bestSVM, pep, spec1, spec2]
-                b.write(",".join(wList) + "\n")
-                
-        else:
-            print("wrong")
+                    linkPair.append(f[m].split(",")[1])
+                    m += 1
+        removeConProt(linkPair)
+        linksite = "/".join(linkPair)
+        bestSVM, bestEvale, pep, spec1, spec2, endPos = continueLines(m, f, numSpec) 
+        if linksite != "":               
+            wList = [linksite, numSpec, bestEvale, bestSVM, pep, linktype, spec1, spec2]
+            b.write(",".join(wList) + "\n")
+        i = endPos
 
 
 def main():
@@ -56,15 +71,11 @@ def main():
         if fl.endswith("filtered_loop-linked_sites.csv"):
             lpfl = open(fl, 'r').readlines()
     b = open("report.csv", 'w')
-    b.write("\t".join(["linkPair", "numSpec", "bestEvale", "bestSVM", "pep", "spec1", "spec2"])+"\n")
-    reportXLfile(xlfl, b)
-    reportXLfile(lpfl, b)
+    b.write(",".join(["linkPair", "numSpec", "bestEvale", "bestSVM", "pep", "LinkType", "spec1", "spec2"])+"\n")
+    reportXLfile(xlfl, b, "Cross-link")
+    reportXLfile(lpfl, b, "Loop-link")
     b.close()
 
 
 if __name__ == "__main__":
     main()
-
-
-
-

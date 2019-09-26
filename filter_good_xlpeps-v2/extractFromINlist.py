@@ -2,10 +2,12 @@
 
 import os
 
-os.chdir(r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.25.07.53.36_Lacto_DSSO_PREid")
+os.chdir(r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.26.14.53.44_CNGP_DSSO_preID_R2")
+#C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.26.14.53.44_CNGP_DSSO_preID_R2
+#C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.26.15.05.42_CNGP_DSSO_preID_R3
 specCF = 2
-svmCF = 0.001
-evalueCF = 0.00001
+svmCF = 0.005
+evalueCF = 0.01
 
 b = open("inclusion.csv", 'w')
 b.write("Compound,Formula,Adduct,m/z,z,t start (min),t stop (min)\n")

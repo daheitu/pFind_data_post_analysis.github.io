@@ -147,6 +147,27 @@ def getTheroIons(pep, modCell):
             [IntenalIonLongAlpha, IntenalIonShortAlpha, IntenalIonLongBeta, IntenalIonShortBeta]
 
 
+# 读取xlpep文件，提取所有ID谱图
+def getIDspec(xlpepPath):
+    idSpecList = []
+    f = open(xlpepPath, 'r').readlines()
+    for line in f[2:]:
+        lineList = line.split(",")
+        if lineList[0] == "" and lineList[1].isdigit():
+            idSpecList.append(lineList[2])
+    idSpecList = sorted(idSpecList, key = lambda x: int(x.split(".")[1]))
+    return idSpecList
+
+
+def getIDspecMZdic(idSpecList, mgfPath):
+    mgf = open(mgfPath, 'r').readlines()
+    i = 0
+    while i < len(mgf):
+        if not mgf[i].starswith("TITLE"):
+            
+
+
+
 def getTargetSpec(spec_path):
     f = open(spec_path).readlines()
     scanSpecdic = {}

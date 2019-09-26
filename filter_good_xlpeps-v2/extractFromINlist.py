@@ -2,10 +2,12 @@
 
 import os
 
-os.chdir(r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.08.19.19.57.19")
+os.chdir(r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.26.14.53.44_CNGP_DSSO_preID_R2")
+#C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.26.14.53.44_CNGP_DSSO_preID_R2
+#C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.26.15.05.42_CNGP_DSSO_preID_R3
 specCF = 2
-svmCF = 0.001
-evalueCF = 0.001
+svmCF = 0.005
+evalueCF = 0.01
 
 b = open("inclusion.csv", 'w')
 b.write("Compound,Formula,Adduct,m/z,z,t start (min),t stop (min)\n")
@@ -20,6 +22,7 @@ for line in f[1:]:
     svmBest = float(lineList[8])
     pq_rt_min = float(lineList[10])
     pq_rt_max = float(lineList[11])
+    fitChamoMean = float(lineList[12])
     pep = lineList[0]
     chg = lineList[1]
     mod = lineList[2]
@@ -27,12 +30,12 @@ for line in f[1:]:
     eluteTimeWin = pq_rt_max - pq_rt_min
     if specNum >= specCF and svmBest < svmCF and evalueBest < evalueCF:
         if eluteTimeWin > 40:
-            eluateM = (pq_rt_max + pq_rt_min) / 2
-            wList = [pep, "", "+H", theo_mz, chg, (eluateM - 300)/60, (eluateM+300)/60]
+            eluateM = fitChamoMean  # (pq_rt_max + pq_rt_min) / 2
+            wList = [pep, "", "+H", theo_mz, chg, (eluateM - 120)/60, (eluateM+120)/60]
         else:
-            eluateM = (pq_rt_max + pq_rt_min) / 2
-            wList = [pep, "", "+H", theo_mz, chg, (eluateM - 300)/60, (eluateM+300)/60]
-        #print(lineList[10], lineList[11])
+            eluateM = fitChamoMean  # (pq_rt_max + pq_rt_min) / 2
+            wList = [pep, "", "+H", theo_mz, chg, (eluateM - 120)/60, (eluateM+120)/60]
+        # print(lineList[10], lineList[11])
         
         b.write(",".join([str(ele) for ele in wList]) + "\n")
 b.close() 

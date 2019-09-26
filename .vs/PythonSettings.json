@@ -1,0 +1,4 @@
+{
+  "Interpreter": "CondaEnv|CondaEnv|Anaconda3",
+  "TestFramework": "Pytest"
+}

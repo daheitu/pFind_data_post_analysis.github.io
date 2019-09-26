@@ -36,38 +36,6 @@ def calMassPepPlusMod(massList, modMass):
     return pepMass + modMass + mpMassTable['H1']
 
 
-def calPepBYions(massList, linkSite, linkAddMass):
-    pepMass = sum(massList) + mpMassTable['H2O'] + linkAddMass\
-         + 2 * mpMassTable['H1']
-    pep_len = len(massList)
-    tmp_mass = mpMassTable['H1']
-    b1Ion_pep = [0] * (pep_len - 1)
-    y1Ion_pep = [0] * (pep_len - 1)
-    for i in range(pep_len - 1):
-        if i == linkSite:
-            tmp_mass += linkAddMass
-        else:
-            pass
-
-        tmp_mass += massList[i]
-        b1Ion_pep[i] = tmp_mass
-        y1Ion_pep[i] = pepMass - tmp_mass
-
-    return b1Ion_pep, y1Ion_pep
-
-
-def calInternalIon(massList, linkSite, linkAddMass):
-    pep_len = len(massList)
-    Intenal_Pep_List = [0] * (pep_len - 1)
-    for i in range(pep_len - 1):
-        if i < linkSite:
-            Intenal_Pep_List[i] = sum(massList[i + 1:]) + mpMassTable['H2O']\
-                 + linkAddMass + 1.00782
-        else:
-            Intenal_Pep_List[i] = sum(massList[:i + 1]) + linkAddMass + 1.00782
-    return Intenal_Pep_List
-
-
 # 根据肽段和修饰生成理论碎片离子
 def getTheroIons(pep, modCell):
     a, b = pep.split('-')
@@ -112,7 +80,6 @@ def getTheroIons(pep, modCell):
     for i in range(pep_b_len):
         b_mass_list[i] = mpMassTable[b[i]] + b_mod_mass_list[i]
 
-    ################### 4 reporter ions mass 1+ ############################
     a_long_mass = calMassPepPlusMod(a_mass_list, longArmMass)
 
     a_short_mass = calMassPepPlusMod(a_mass_list, shortArmMass)
@@ -120,54 +87,50 @@ def getTheroIons(pep, modCell):
     b_long_mass = calMassPepPlusMod(b_mass_list, longArmMass)
 
     b_short_mass = calMassPepPlusMod(b_mass_list, shortArmMass)
-    ###################4 reporter ions mass 1+ ############################
 
-    ######################regular b,y ions 1+########################
-    pep_mass = a_long_mass + b_short_mass + mpMassTable['H2O']
-    a_linker_mass = sum(a_mass_list) + mpMassTable['H2O'] + LinkerMass
-    b_linker_mass = sum(b_mass_list) + mpMassTable['H2O'] + LinkerMass
-
-    b1IonPepAlpha, y1IonPepAlpha = calPepBYions(a_mass_list, site_a,
-                                                b_linker_mass)
-
-    b1IonPepBeta, y1IonPepBeta = calPepBYions(b_mass_list, site_b,
-                                              a_linker_mass)
-    ######################regular b,y ions 1+########################
-
-    #############Internal ions mass 1+  cleave at linker and backbone######
-    IntenalIonLongAlpha = calInternalIon(a_mass_list, site_a, longArmMass)
-    IntenalIonShortAlpha = calInternalIon(a_mass_list, site_a, shortArmMass)
-
-    IntenalIonLongBeta = calInternalIon(b_mass_list, site_b, longArmMass)
-    IntenalIonShortBeta = calInternalIon(b_mass_list, site_b, shortArmMass)
-    #############Internal ions mass 1+  cleave at linker and backbone######
-
-    return [b1IonPepAlpha, y1IonPepAlpha, b1IonPepBeta, y1IonPepBeta], \
-            [a_long_mass, a_short_mass, b_long_mass, b_short_mass],\
-            [IntenalIonLongAlpha, IntenalIonShortAlpha, IntenalIonLongBeta, IntenalIonShortBeta]
+    return [a_long_mass, a_short_mass, b_long_mass, b_short_mass]
 
 
-def getTargetSpec(spec_path):
-    f = open(spec_path).readlines()
-    scanSpecdic = {}
+# 读取xlpep文件，提取所有ID谱图
+def getIDspec(xlpepPath):
+    idSpecList = []
+    f = open(xlpepPath, 'r').readlines()
+    for line in f[2:]:
+        lineList = line.split(",")
+        if lineList[0] == "" and lineList[1].isdigit():
+            idSpecList.append(lineList[2])
+    idSpecList = sorted(idSpecList, key = lambda x: int(x.split(".")[1]))
+    return idSpecList
+
+
+def getIDspecMZdic(idSpecList, mgfPath):
+    IDspecMZdic = {}
+    endidListScan = int(idSpecList[-1]split(".")[1])
+    mgf = open(mgfPath, 'r').readlines()
     i = 0
-    while i < len(f):
-        if f[i].strip() != "BEGIN IONS":
-            print(i)
-        else:
-            scan = int(f[i + 2].split("=")[1].strip())
-            vOneSpec = []
-            p = i + 6
-            while p < len(f):
-                if f[p].strip() == "END IONS":
-                    vOneSpec.append(f[p])
-                    break
+    while i < len(mgf):
+        if mgf[i].starswith("TITLE"):
+            title = mgf[i][6:-1]
+            scan = int(title.split(".")[1])
+            if scan > endidListScan:
+                break
+            else:
+                if title not in idSpecList:
+                    i += 1
                 else:
-                    vOneSpec.append(f[p])
-                    p += 1
-            scanSpecdic[scan] = vOneSpec
-            i = p + 2
-    return scanSpecdic
+                    p = i + 4
+                    ms2Dic = {}
+                    while p < len(mgf):
+                        if mgf[p].starswith("END IONS"):
+                            break
+                        else:
+                            mz, ints = mgf[:-1].split(" ")
+                            ms2Dic[mz] = ints
+                    IDspecMZdic[title] = ms2Dic
+                    i = p + 1
+        else:
+            i += 1            
+    return IDspecMZdic
 
 
 def isMatched(mz, spec):
@@ -305,178 +268,17 @@ def summary_rep_macthDic(match_dic):
     return detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts
 
 
-def matchBYions(b1, y1, site, max_c, spec, fmatched):
-    common_mask = [0] * len(b1)
-    xlink_mask = [0] * len(y1)
-
-    for c in range(1, max_c + 1):
-        b_cur = []
-        y_cur = []
-
-        b_cur = [(m + 1.0078 * (c - 1)) / float(c) for m in b1]
-        y_cur = [(m + 1.0078 * (c - 1)) / float(c) for m in y1]
-
-        for i in range(len(b1)):
-            if i < site and isMatched(b_cur[i], spec):
-                common_mask[i] = 1
-                fmatched.write('site=%d\tcharge=%d\tmz=%f\ttype=common_b\n' %
-                               (i, c, b_cur[i]))
-            if i >= site and isMatched(y_cur[i], spec):
-                common_mask[i] = 1
-                fmatched.write('site=%d\tcharge=%d\tmz=%f\ttype=common_y\n' %
-                               (i, c, y_cur[i]))
-            if i < site and isMatched(y_cur[i], spec):
-                xlink_mask[i] = 1
-                fmatched.write('site=%d\tcharge=%d\tmz=%f\ttype=xlink_y\n' %
-                               (i, c, y_cur[i]))
-            if i >= site and isMatched(b_cur[i], spec):
-                xlink_mask[i] = 1
-                fmatched.write('site=%d\tcharge=%d\tmz=%f\ttype=xlink_b\n' %
-                               (i, c, b_cur[i]))
-    fmatched.write('common ion matched: ' + str(common_mask) + '\n')
-    fmatched.write('xlink ion matched: ' + str(xlink_mask) + '\n')
-    return common_mask, xlink_mask
-
-
-def matchPepIntXP(In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short,
-                  spec, fmatched):
-    max_c = 2
-    inPAXL = copy.deepcopy(In_pepA_long)
-    inPAXS = copy.deepcopy(In_pepA_short)
-    inPBXL = copy.deepcopy(In_pepB_long)
-    inPBXS = copy.deepcopy(In_pepB_short)
-    inPAXL_mask = [0] * len(inPAXL)
-    inPAXS_mask = [0] * len(inPAXS)
-    inPBXL_mask = [0] * len(inPBXL)
-    inPBXS_mask = [0] * len(inPBXS)
-
-    for c in range(1, max_c + 1):
-        inPAXL_cur = [(m + 1.0078 * (c - 1)) / c for m in inPAXL]
-        inPAXS_cur = [(m + 1.0078 * (c - 1)) / c for m in inPAXS]
-        inPBXL_cur = [(m + 1.0078 * (c - 1)) / c for m in inPBXL]
-        inPBXS_cur = [(m + 1.0078 * (c - 1)) / c for m in inPBXS]
-
-        for i in range(len(inPAXL_cur)):
-            if isMatched(inPAXL_cur[i], spec):
-                inPAXL_mask[i] += 1
-                fmatched.write(
-                    'site=(%d, AL)\tcharge=%d\tmz=%f\ttype=In_pepA_long\n' %
-                    (i, c, inPAXL_cur[i]))
-
-            if isMatched(inPAXS_cur[i], spec):
-                inPAXS_mask[i] += 1
-                fmatched.write(
-                    'site=(%d, AS)\tcharge=%d\tmz=%f\ttype=In_pepA_short\n' %
-                    (i, c, inPAXS_cur[i]))
-
-        for i in range(len(inPBXL_cur)):
-            if isMatched(inPBXL_cur[i], spec):
-                inPBXL_mask[i] += 1
-                fmatched.write(
-                    'site=(%d, BL)\tcharge=%d\tmz=%f\ttype=In_pepB_long\n' %
-                    (i, c, inPBXL_cur[i]))
-            if isMatched(inPBXS_cur[i], spec):
-                inPBXS_mask[i] += 1
-                fmatched.write(
-                    'site=(%d, BS)\tcharge=%d\tmz=%f\ttype=In_pepB_short\n' %
-                    (i, c, inPBXS_cur[i]))
-
-    total_unmat = inPAXL_mask.count(0) + inPAXS_mask.count(
-        0) + inPBXL_mask.count(0) + inPBXS_mask.count(0)
-    intXP_ratio = 1 - total_unmat / float(len(inPAXL) + len(inPBXL)) / 2
-    return intXP_ratio  # , [inPAXL_mask, inPAXS_mask, inPBXL_mask, inPBXS_mask]
-
-
-def writeTheorIon(pep, mod, by_ions, reporter_ions, intXPions, ftheo_ions):
-    b1_a, y1_a, b1_b, y1_b = by_ions
-
-    a_long_mass, a_short_mass, b_long_mass, b_short_mass = reporter_ions
-
-    In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short = intXPions
-
-    ftheo_ions.write('XLPeptide=%s\tmodification=%s\n' % (pep, mod))
-    ftheo_ions.write('--------alpha backbone ions (alpha b1+)---------\n')
-    ftheo_ions.write("\t".join([str(ele)
-                                for ele in b1_a if type(ele) != str]) + "\n")
-
-    ftheo_ions.write('--------alpha backbone ions (alpha y1+)---------\n')
-    ftheo_ions.write("\t".join([str(ele)
-                                for ele in y1_a if type(ele) != str]) + "\n")
-
-    ftheo_ions.write('--------beta backbone ions (beta b1+)---------\n')
-    ftheo_ions.write("\t".join([str(ele)
-                                for ele in b1_b if type(ele) != str]) + "\n")
-
-    ftheo_ions.write('--------beta backbone ions (beta y1+)---------\n')
-    ftheo_ions.write("\t".join([str(ele)
-                                for ele in y1_b if type(ele) != str]) + "\n")
-
-    ftheo_ions.write('--------reporter ions (alpha long 1+)---------\n')
-    ftheo_ions.write(str(a_long_mass) + "\n")
-
-    ftheo_ions.write('--------reporter ions (alpha short 1+)---------\n')
-    ftheo_ions.write(str(a_short_mass) + "\n")
-
-    ftheo_ions.write('--------reporter ions (beta long 1+)---------\n')
-    ftheo_ions.write(str(b_long_mass) + "\n")
-
-    ftheo_ions.write('--------reporter ions (beta short 1+)---------\n')
-    ftheo_ions.write(str(b_short_mass) + "\n")
-
-
-def calIonRatio(pep, spec, charge, modCell, pepModToTheoIonDic, fmatched):
-    a, b = pep.split('-')
-
-    site_a = int(''.join([i for i in a if i.isdigit()])) - 1
-    site_b = int(''.join([i for i in b if i.isdigit()])) - 1
-
-    a = ''.join([i for i in a if i.isalpha()])
-    b = ''.join([i for i in b if i.isalpha()])
-
-    pep_a_len = len(a)
-    pep_b_len = len(b)
-
-    max_c = min(3, charge)
-
-    by_ions, reporter_ions, intXPions = pepModToTheoIonDic[(pep, modCell)]
-
-    b1_a, y1_a, b1_b, y1_b = by_ions
-    a_long_mass, a_short_mass, b_long_mass, b_short_mass = reporter_ions
-
-    In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short = intXPions
-
-    fmatched.write('XLpep=%s\tmod=%s\tcharge=%d\n' % (pep, modCell, charge))
-    fmatched.write('---------alpha---------------\n')
-    a_common_mask, a_xlink_mask = matchBYions(b1_a, y1_a, site_a, max_c, spec,
-                                              fmatched)
-
-    fmatched.write('---------beta---------------\n')
-    b_common_mask, b_xlink_mask = matchBYions(b1_b, y1_b, site_b, max_c, spec,
-                                              fmatched)
+def calIonRatio(pep, spec, charge, modCell, fmatched):
+    max_c = charge -1 
+    a_long_mass, a_short_mass, b_long_mass, b_short_mass = getTheroIons(pep, modCell)
+    reporter_ions= [a_long_mass, a_short_mass, b_long_mass, b_short_mass]
 
     fmatched.write('---------reporter ions---------------\n')
     match_dic = match_report_ion(reporter_ions, spec, max_c, fmatched)
     detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts = summary_rep_macthDic(
         match_dic)
 
-    fmatched.write('---------internal PX---------------\n')
-    intPXratio = matchPepIntXP(In_pepA_long, In_pepA_short, In_pepB_long,
-                               In_pepB_short, spec, fmatched)
-
-    sumCommAlpha = sum(a_common_mask)
-    sumXlinkAlpha = sum(a_xlink_mask)
-    sumCommBeta = sum(b_common_mask)
-    sumXlinkBeta = sum(b_xlink_mask)
-
-    regular_by_ion_ratio = (sumCommAlpha + sumCommBeta) / (pep_b_len +
-                                                           pep_a_len - 2)
-    xlink_by_ion_ratio = (sumXlinkAlpha + sumXlinkBeta) / (pep_b_len +
-                                                           pep_a_len - 2)
-    commByAlpha = sumCommAlpha / (pep_a_len - 1)
-    commByBeta = sumCommBeta / (pep_b_len - 1)
-
-    return regular_by_ion_ratio, xlink_by_ion_ratio, detect_bool, pair_num, \
-        maxBetaRepInts, maxAlphaRepInts, intPXratio, commByAlpha, commByBeta
+    return  detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts, 
 
 
 def findMZinmzDic(mz, charge, mzdic):

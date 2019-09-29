@@ -8,15 +8,15 @@ sys.path.append(
 )
 from filter_Reuslt import main
 
-os.chdir(r"F:\MS_DATA_STORAGE\20190819\multiNCE\inclu_random_reverse")
+os.chdir(r"/Users/yong/github/pLink_task_2019.09.25.07.53.36_Lacto_DSSO_PREid/reports")
 
 flPath = r"./BSA_DSSO_INCLU_RANDOM_REVERSE_R1.ms2"
 incluPath = r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.08.19.19.57.19\inclusion_list.csv"
-mgfPath = r"./BSA_DSSO_INCLU_RANDOM_REVERSE_R1.mgf"
-
+mgfPath = r"/Users/yong/github/pLink_task_2019.09.25.07.53.36_Lacto_DSSO_PREid/Lactof_DSSO_1MM_190922_PREid_r1_HCDFT.mgf"
+xlpepFile = "Lactoferrin_2019.09.25.filtered_cross-linked_peptides.csv"
 LinkerMass = 158.004  # 交联剂质量
-longArmMass = 85.9826
-shortArmMass = 54.0106
+longArmMass = 85.9826 # 长臂质量
+shortArmMass = 54.0106 # 短臂质量
 
 mpMassTable={'A':71.037114, 'R':156.101111, 'N':114.042927, 'D':115.026943,\
     'C':103.009185, 'E':129.042593,'Q':128.058578,'G':57.021464, 'H':137.058912,\
@@ -103,13 +103,15 @@ def getIDspec(xlpepPath):
     return idSpecList
 
 
-def getIDspecMZdic(idSpecList, mgfPath):
+def getIDspecMZdic(xlpepPath, mgfPath):
     IDspecMZdic = {}
-    endidListScan = int(idSpecList[-1]split(".")[1])
+    idSpecList = getIDspec(xlpepPath)
+    endidListScan = int(idSpecList[-1].split(".")[1])
     mgf = open(mgfPath, 'r').readlines()
     i = 0
     while i < len(mgf):
-        if mgf[i].starswith("TITLE"):
+        print(i)
+        if mgf[i].startswith("TITLE"):
             title = mgf[i][6:-1]
             scan = int(title.split(".")[1])
             if scan > endidListScan:
@@ -121,17 +123,20 @@ def getIDspecMZdic(idSpecList, mgfPath):
                     p = i + 4
                     ms2Dic = {}
                     while p < len(mgf):
-                        if mgf[p].starswith("END IONS"):
+                        if mgf[p].startswith("END IONS"):
                             break
                         else:
-                            mz, ints = mgf[:-1].split(" ")
-                            ms2Dic[mz] = ints
+                            mz, ints = mgf[p][:-1].split(" ")              
+                            ms2Dic[float(mz)] = float(ints)
+                            p += 1
                     IDspecMZdic[title] = ms2Dic
                     i = p + 1
         else:
             i += 1            
     return IDspecMZdic
 
+
+#print(getIDspecMZdic("Lactoferrin_2019.09.25.filtered_cross-linked_peptides.csv", mgfPath))
 
 def isMatched(mz, spec):
     lowTgtMZ, upTgtMZ = generate_ion_mass_range(mz)
@@ -278,142 +283,29 @@ def calIonRatio(pep, spec, charge, modCell, fmatched):
     detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts = summary_rep_macthDic(
         match_dic)
 
-    return  detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts, 
+    return  detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts
 
-
-def findMZinmzDic(mz, charge, mzdic):
-    if (mz, charge) in mzdic:
-        return mzdic[mz, charge]
-    else:
-        mzList = sorted([x[0] for x in list(mzdic.keys()) if x[1] == charge])
-        if mzList == []:
-            return False
+IDspecMZdic = getIDspecMZdic(xlpepFile, mgfPath)
+f = open(xlpepFile, 'r').readlines()
+i = 2
+while i < len(f):
+    lineList = f[i].split(",")
+    pep = lineList[1]
+    modCell = lineList[3]
+    print(pep, modCell)
+    
+    p = i + 1 
+    while p < len(f):
+        if f[p].split(",")[0].isdigit():
+            break
         else:
-            deltaMass = mz * 10 / 1000000
-            lowMZ, upMZ = mz - deltaMass, mz + deltaMass
-            if lowMZ > mzList[-1]:
-                return False
-            else:
-                i = 0
-                while i < len(mzList):
-                    if upMZ < mzList[i]:
-                        return False
-                    elif lowMZ <= mzList[i]:
-                        if (mzList[i], charge) in mzdic:
-                            return mzdic[mzList[i], charge]
-                        else:
-                            return False
-                    else:
-                        i += 1
+            specLineList = f[p].split(",")
+            spec = IDspecMZdic[specLineList[2]]
+            charge = int(specLineList[3])
+            detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts = calIonRatio(pep, spec, charge, modCell, fmatched)
+            print(pecLineList[2])
+            print(detect_bool, pair_num)
+            p += 1
+    i = p
 
 
-def getScanNCE(ms2flpath):
-    scanNCEdic = {}
-    f = open(ms2flpath, 'r').readlines()
-    scanNCEdic = {}
-    i = 0
-    while i < len(f):
-        if f[i][0] != "S":
-            i += 1
-        else:
-            scan = int(f[i].split("\t")[1])
-            mz = float(f[i].split("\t")[-1])
-            charge = f[i + 9].split("\t")[1]
-            nce = f[i + 6].split("\t")[2].split(" ")[7].split("@")[1][3:5]
-            scanNCEdic[scan] = [mz, charge, nce]
-            i += 10
-    return scanNCEdic
-
-
-def getmzPepMod(incluPath):
-    mzPepModDic = {}
-    f = open(incluPath, 'r').readlines()
-    for line in f[1:]:
-        lineList = line.split(',')
-        charge = lineList[1]
-        therMZ = float(lineList[3])
-        pep = lineList[0]
-        mod = lineList[2]
-        #print(therMZ, charge)
-        mzPepModDic[therMZ, charge] = [pep, mod]
-    return mzPepModDic
-
-
-def pepModToTheoIon(mzPepModDic, ftheo_ions):
-    pepModToTheoIonDic = {}
-    pepModList = []
-    for key in mzPepModDic:
-        [pep, mod] = mzPepModDic[key]
-        if (pep, mod) not in pepModToTheoIonDic:
-            by_ions, reporter_ions, intXPions = getTheroIons(pep, mod)
-            pepModToTheoIonDic[pep, mod] = [by_ions, reporter_ions, intXPions]
-            writeTheorIon(pep, mod, by_ions, reporter_ions, intXPions,
-                          ftheo_ions)
-
-    return pepModToTheoIonDic
-
-
-def linkscanNCEmzPepMod():
-    scanNCEdic = getScanNCE(flPath)
-    mzPepModDic = getmzPepMod(incluPath)
-    delScans = []
-    for scan in scanNCEdic:
-        realMZ, charge = scanNCEdic[scan][:2]
-        judgeBool = findMZinmzDic(realMZ, charge, mzPepModDic)
-        if judgeBool:
-            scanNCEdic[scan].extend(judgeBool)
-        else:
-            print(scan, realMZ, charge)
-            delScans.append(scan)
-    for scan in delScans:
-        del scanNCEdic[scan]
-    return scanNCEdic
-
-
-def main():
-    bg_time = time.localtime(time.time())
-
-    fmatched = open("./matched_info", 'w')
-    ftheo_ions = open("./theoretical_ions", 'w')
-    mzPepModDic = getmzPepMod(incluPath)
-    pepModToTheoIonDic = pepModToTheoIon(mzPepModDic, ftheo_ions)
-    scanNCEdic = linkscanNCEmzPepMod()
-
-    repDic = {}
-    scanSpecdic = getTargetSpec(mgfPath)
-    for scan in scanNCEdic:
-        ttl = scanNCEdic[scan]
-        print(scan)
-        pep = ttl[3]
-        modCell = ttl[4]
-        charge = int(ttl[1])
-        nce = ttl[2]
-
-        spec = scanSpecdic[scan]
-
-        extendInfo = calIonRatio(pep, spec, charge, modCell,
-                                 pepModToTheoIonDic, fmatched)
-        ttl.extend(extendInfo)
-        ttl.insert(0, scan)
-        repDic[scan] = ttl
-
-    fmatched.close()
-    ftheo_ions.close()
-
-    b = open("reportFile_commBY.csv", 'w')
-    b.write("scan, mz, charge, nce, pep, mods, regular_by_ion_ratio,\
-        xlink_by_ion_ratio, detect_bool, pair_num, rep_ints_beta,\
-            rep_ints_alpha, intPXratio, commBYalpha, commBYbeta" + "\n")
-
-    for scan in repDic:
-        wlist = [str(ele) for ele in repDic[scan]]
-        b.write(",".join(wlist) + "\n")
-    b.close()
-
-    endTime = time.localtime(time.time())
-    print(bg_time, "\n", endTime)
-
-
-if __name__ == '__main__':
-    main()
-#main()

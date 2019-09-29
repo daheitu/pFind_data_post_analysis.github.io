@@ -8,17 +8,19 @@ sys.path.append(
 )
 from filter_Reuslt import main
 
-os.chdir(r"/Users/yong/github/pLink_task_2019.09.25.07.53.36_Lacto_DSSO_PREid/reports")
+os.chdir(
+    r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.25.07.53.36_Lacto_DSSO_PREid\reports"
+)
 
 flPath = r"./BSA_DSSO_INCLU_RANDOM_REVERSE_R1.ms2"
 incluPath = r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.08.19.19.57.19\inclusion_list.csv"
-mgfPath = r"/Users/yong/github/pLink_task_2019.09.25.07.53.36_Lacto_DSSO_PREid/Lactof_DSSO_1MM_190922_PREid_r1_HCDFT.mgf"
+mgfPath = r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.25.07.53.36_Lacto_DSSO_PREid\Lactof_DSSO_1MM_190922_PREid_r1_HCDFT.mgf"
 xlpepFile = "Lactoferrin_2019.09.25.filtered_cross-linked_peptides.csv"
 LinkerMass = 158.004  # 交联剂质量
-longArmMass = 85.9826 # 长臂质量
-shortArmMass = 54.0106 # 短臂质量
+longArmMass = 85.9826  # 长臂质量
+shortArmMass = 54.0106  # 短臂质量
 
-mpMassTable={'A':71.037114, 'R':156.101111, 'N':114.042927, 'D':115.026943,\
+mpMassTable = {'A': 71.037114, 'R': 156.101111, 'N': 114.042927, 'D': 115.026943,\
     'C':103.009185, 'E':129.042593,'Q':128.058578,'G':57.021464, 'H':137.058912,\
     'I':113.084064, 'L':113.084064,'K':128.094963,'M':131.040485, 'F':147.068414,\
     'P':97.052764, 'S':87.032028, 'T':101.047679, 'U':150.95363, 'W':186.079313,\
@@ -99,7 +101,7 @@ def getIDspec(xlpepPath):
         lineList = line.split(",")
         if lineList[0] == "" and lineList[1].isdigit():
             idSpecList.append(lineList[2])
-    idSpecList = sorted(idSpecList, key = lambda x: int(x.split(".")[1]))
+    idSpecList = sorted(idSpecList, key=lambda x: int(x.split(".")[1]))
     return idSpecList
 
 
@@ -110,7 +112,7 @@ def getIDspecMZdic(xlpepPath, mgfPath):
     mgf = open(mgfPath, 'r').readlines()
     i = 0
     while i < len(mgf):
-        print(i)
+        # print(i)
         if mgf[i].startswith("TITLE"):
             title = mgf[i][6:-1]
             scan = int(title.split(".")[1])
@@ -126,17 +128,18 @@ def getIDspecMZdic(xlpepPath, mgfPath):
                         if mgf[p].startswith("END IONS"):
                             break
                         else:
-                            mz, ints = mgf[p][:-1].split(" ")              
+                            mz, ints = mgf[p][:-1].split(" ")
                             ms2Dic[float(mz)] = float(ints)
                             p += 1
                     IDspecMZdic[title] = ms2Dic
                     i = p + 1
         else:
-            i += 1            
+            i += 1
     return IDspecMZdic
 
 
 #print(getIDspecMZdic("Lactoferrin_2019.09.25.filtered_cross-linked_peptides.csv", mgfPath))
+
 
 def isMatched(mz, spec):
     lowTgtMZ, upTgtMZ = generate_ion_mass_range(mz)
@@ -180,11 +183,7 @@ def isMatchForReport(mz, ms2_dic):
 
 #对给定的报告离子的1+质量列表，计算多价态下其是否存在，并写入匹配文件
 def match_report_ion(mass_list, spec, max_c, fmatched):
-    ms2_dic = {}
-    for i in range(len(spec) - 1):
-        ms2_mz = float(spec[i][:-1].split(" ")[0])
-        ms2_ins = float(spec[i][:-1].split(" ")[1])
-        ms2_dic[ms2_mz] = ms2_ins
+    ms2_dic = spec
     rep_mask = [0] * 4
     match_dic = {}
     mz_list = sorted(list(ms2_dic.keys()))
@@ -274,17 +273,19 @@ def summary_rep_macthDic(match_dic):
 
 
 def calIonRatio(pep, spec, charge, modCell, fmatched):
-    max_c = charge -1 
-    a_long_mass, a_short_mass, b_long_mass, b_short_mass = getTheroIons(pep, modCell)
-    reporter_ions= [a_long_mass, a_short_mass, b_long_mass, b_short_mass]
+    max_c = charge - 1
+    a_long_mass, a_short_mass, b_long_mass, b_short_mass = getTheroIons(
+        pep, modCell)
+    reporter_ions = [a_long_mass, a_short_mass, b_long_mass, b_short_mass]
 
     fmatched.write('---------reporter ions---------------\n')
     match_dic = match_report_ion(reporter_ions, spec, max_c, fmatched)
     detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts = summary_rep_macthDic(
         match_dic)
 
-    return  detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts
+    return detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts
 
+fmatched = open("./matched_info", 'w')
 IDspecMZdic = getIDspecMZdic(xlpepFile, mgfPath)
 f = open(xlpepFile, 'r').readlines()
 i = 2
@@ -293,8 +294,8 @@ while i < len(f):
     pep = lineList[1]
     modCell = lineList[3]
     print(pep, modCell)
-    
-    p = i + 1 
+
+    p = i + 1
     while p < len(f):
         if f[p].split(",")[0].isdigit():
             break
@@ -302,10 +303,10 @@ while i < len(f):
             specLineList = f[p].split(",")
             spec = IDspecMZdic[specLineList[2]]
             charge = int(specLineList[3])
-            detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts = calIonRatio(pep, spec, charge, modCell, fmatched)
-            print(pecLineList[2])
+            detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts = calIonRatio(
+                pep, spec, charge, modCell, fmatched)
+            print(specLineList[2])
             print(detect_bool, pair_num)
             p += 1
     i = p
-
-
+fmatched.close()

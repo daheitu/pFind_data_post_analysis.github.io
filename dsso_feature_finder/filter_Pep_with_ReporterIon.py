@@ -9,12 +9,14 @@ sys.path.append(
 from filter_Reuslt import main
 
 os.chdir(
-    r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.25.07.53.36_Lacto_DSSO_PREid\reports"
-)
+    r"/Users/yong/github/pLink_task_2019.09.25.07.53.36_Lacto_DSSO_PREid/reports/")
+    #"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.25.07.53.36_Lacto_DSSO_PREid\reports"
+
 
 flPath = r"./BSA_DSSO_INCLU_RANDOM_REVERSE_R1.ms2"
 incluPath = r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.08.19.19.57.19\inclusion_list.csv"
 mgfPath = r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.25.07.53.36_Lacto_DSSO_PREid\Lactof_DSSO_1MM_190922_PREid_r1_HCDFT.mgf"
+mgfPathMac = "/Users/yong/github/pLink_task_2019.09.25.07.53.36_Lacto_DSSO_PREid/Lactof_DSSO_1MM_190922_PREid_r1_HCDFT.mgf"
 xlpepFile = "Lactoferrin_2019.09.25.filtered_cross-linked_peptides.csv"
 LinkerMass = 158.004  # 交联剂质量
 longArmMass = 85.9826  # 长臂质量
@@ -286,15 +288,16 @@ def calIonRatio(pep, spec, charge, modCell, fmatched):
     return detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts
 
 fmatched = open("./matched_info", 'w')
-IDspecMZdic = getIDspecMZdic(xlpepFile, mgfPath)
+IDspecMZdic = getIDspecMZdic(xlpepFile, mgfPathMac)
 f = open(xlpepFile, 'r').readlines()
+wtDic = {}
 i = 2
 while i < len(f):
     lineList = f[i].split(",")
     pep = lineList[1]
     modCell = lineList[3]
     print(pep, modCell)
-
+    wtList = []
     p = i + 1
     while p < len(f):
         if f[p].split(",")[0].isdigit():
@@ -307,6 +310,17 @@ while i < len(f):
                 pep, spec, charge, modCell, fmatched)
             print(specLineList[2])
             print(detect_bool, pair_num)
+            if int(pair_num) > 0 and max(maxBetaRepInts, maxAlphaRepInts) > 0.1:
+                wtList.append(f[p])
             p += 1
+    wtDic[f[i]] = wtList
     i = p
 fmatched.close()
+b = open("filter.csv", 'w')
+for key in wtDic:
+    if wtDic[key] != []:
+        b.write(key)
+        for spec in wtDic[key]:
+            b.write(spec)
+
+b.close()

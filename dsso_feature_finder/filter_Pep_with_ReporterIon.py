@@ -9,7 +9,8 @@ sys.path.append(
 from filter_Reuslt import main
 
 os.chdir(
-    r"/Users/yong/github/pLink_task_2019.09.25.07.53.36_Lacto_DSSO_PREid/reports/")
+    r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.25.07.53.36_Lacto_DSSO_PREid\reports")
+    #"/Users/yong/github/pLink_task_2019.09.25.07.53.36_Lacto_DSSO_PREid/reports/")
     #"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.25.07.53.36_Lacto_DSSO_PREid\reports"
 
 
@@ -188,8 +189,6 @@ def match_report_ion(mass_list, spec, max_c, fmatched):
     ms2_dic = spec
     rep_mask = [0] * 4
     match_dic = {}
-    mz_list = sorted(list(ms2_dic.keys()))
-    max_ins = max(list(ms2_dic.values()))
     for c in range(1, max_c + 1):
         mass_cur_list = [(m + 1.0078 * (c - 1)) / c for m in mass_list]
         for i in range(len(mass_cur_list)):
@@ -288,7 +287,7 @@ def calIonRatio(pep, spec, charge, modCell, fmatched):
     return detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts
 
 fmatched = open("./matched_info", 'w')
-IDspecMZdic = getIDspecMZdic(xlpepFile, mgfPathMac)
+IDspecMZdic = getIDspecMZdic(xlpepFile, mgfPath)
 f = open(xlpepFile, 'r').readlines()
 wtDic = {}
 i = 2

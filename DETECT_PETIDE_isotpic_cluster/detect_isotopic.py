@@ -69,7 +69,7 @@ def detectIsotopic(ms2_dic):
                     break
                 else:
                     delta =  float(ms2MzList[idx]) - float(mz)
-                    delta_min_ther = [abs(x -delta) for x in dmassChargeList]
+                    delta_min_ther = [abs(x - delta) for x in dmassChargeList]
                     min_delta_idx = delta_min_ther.index(min(delta_min_ther))
                     ther_plus1_mz = float(mz) + dmassChargeList[min_delta_idx]
                     mzPlus1Bool = compareTwoNum(ms2MzList[idx], ther_plus1_mz, 20)

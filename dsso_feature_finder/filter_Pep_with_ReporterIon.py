@@ -1,12 +1,6 @@
 # coding = utf-8
 
-import os, sys, time
-import copy
-from numpy import zeros
-sys.path.append(
-    r"F:\OneDrive\github\pFind_data_post_analysis.github.io\dsso_feature_finder"
-)
-from filter_Reuslt import main
+import os
 
 os.chdir(
     r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.25.07.53.36_Lacto_DSSO_PREid\reports")
@@ -44,9 +38,6 @@ def calMassPepPlusMod(massList, modMass):
 # 根据肽段和修饰生成理论碎片离子
 def getTheroIons(pep, modCell):
     a, b = pep.split('-')
-
-    site_a = int(''.join([i for i in a if i.isdigit()])) - 1
-    site_b = int(''.join([i for i in b if i.isdigit()])) - 1
 
     pep_a = a.split("(")[0]  #''.join([i for i in a if i.isalpha()])
     pep_b = b.split("(")[0]  # ''.join([i for i in b if i.isalpha()])
@@ -93,7 +84,7 @@ def getTheroIons(pep, modCell):
 
     b_short_mass = calMassPepPlusMod(b_mass_list, shortArmMass)
 
-    return [a_long_mass, a_short_mass, b_long_mass, b_short_mass]
+    return [a_short_mass, a_long_mass, b_short_mass, b_long_mass]
 
 
 # 读取xlpep文件，提取所有ID谱图
@@ -185,8 +176,7 @@ def isMatchForReport(mz, ms2_dic):
 
 
 #对给定的报告离子的1+质量列表，计算多价态下其是否存在，并写入匹配文件
-def match_report_ion(mass_list, spec, max_c, fmatched):
-    ms2_dic = spec
+def match_report_ion(mass_list, ms2_dic, max_c, fmatched):
     rep_mask = [0] * 4
     match_dic = {}
     for c in range(1, max_c + 1):
@@ -196,19 +186,19 @@ def match_report_ion(mass_list, spec, max_c, fmatched):
                 matchedMZ, matchedRelInts = isMatchForReport(
                     mass_cur_list[i], ms2_dic)[1:]
                 rep_mask[i] += 1
-                if i == 0:
-                    fmatched.write('charge=%d\tmz=%f\ttype=Alpha_long_mass\n' %
-                                   (c, mass_list[i]))
-                elif i == 1:
+                if i == 1:
+                    fmatched.write('charge=%d\tmz=%f\tIntensity=%f\ttype=Alpha_long_mass\n' %
+                                   (c, matchedMZ, matchedRelInts))
+                elif i == 0:
                     fmatched.write(
-                        'charge=%d\tmz=%f\ttype=Alpha_short_mass\n' %
-                        (c, mass_list[i]))
-                elif i == 2:
-                    fmatched.write('charge=%d\tmz=%f\ttype=Beta_long_mass\n' %
-                                   (c, mass_list[i]))
+                        'charge=%d\tmz=%f\tIntensity=%f\ttype=Alpha_short_mass\n' %
+                        (c, matchedMZ, matchedRelInts))
+                elif i == 3:
+                    fmatched.write('charge=%d\tmz=%f\tIntensity=%f\ttype=Beta_long_mass\n' %
+                                   (c, matchedMZ, matchedRelInts))
                 else:
-                    fmatched.write('charge=%d\tmz=%f\ttype=Beta_short_mass\n' %
-                                   (c, mass_list[i]))
+                    fmatched.write('charge=%d\tmz=%f\tIntensity=%f\ttype=Beta_short_mass\n' %
+                                   (c, matchedMZ, matchedRelInts))
 
                 if i not in match_dic:
                     match_dic[i] = [[
@@ -273,14 +263,15 @@ def summary_rep_macthDic(match_dic):
     return detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts
 
 
-def calIonRatio(pep, spec, charge, modCell, fmatched):
+def calIonRatio(pep, spec, ms2dic, charge, modCell, fmatched):
     max_c = charge - 1
     a_long_mass, a_short_mass, b_long_mass, b_short_mass = getTheroIons(
         pep, modCell)
     reporter_ions = [a_long_mass, a_short_mass, b_long_mass, b_short_mass]
-
+    fmatched.write('pep = %s\tmod = %s\tcharge = %d\n' % (pep, modCell, charge))
     fmatched.write('---------reporter ions---------------\n')
-    match_dic = match_report_ion(reporter_ions, spec, max_c, fmatched)
+    fmatched.write(spec +'\n')
+    match_dic = match_report_ion(reporter_ions, ms2dic, max_c, fmatched)
     detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts = summary_rep_macthDic(
         match_dic)
 
@@ -303,13 +294,14 @@ while i < len(f):
             break
         else:
             specLineList = f[p].split(",")
-            spec = IDspecMZdic[specLineList[2]]
+            specTitle = specLineList[2]
+            ms2Dic = IDspecMZdic[specLineList[2]]
             charge = int(specLineList[3])
             detect_bool, pair_num, maxBetaRepInts, maxAlphaRepInts = calIonRatio(
-                pep, spec, charge, modCell, fmatched)
-            print(specLineList[2])
+                pep, specTitle, ms2Dic, charge, modCell, fmatched)
+            print(specTitle)
             print(detect_bool, pair_num)
-            if int(pair_num) > 0 and max(maxBetaRepInts, maxAlphaRepInts) > 0.1:
+            if int(pair_num) > 0 and max([x for x in [maxBetaRepInts, maxAlphaRepInts] if type(x) == float]) > 0.05:
                 wtList.append(f[p])
             p += 1
     wtDic[f[i]] = wtList

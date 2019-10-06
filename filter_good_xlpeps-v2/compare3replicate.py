@@ -2,8 +2,8 @@
 
 import os
 
-path_r2 = r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.26.14.53.44_CNGP_DSSO_preID_R2"
-path_r3 = r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.26.15.05.42_CNGP_DSSO_preID_R3"
+path_r2 = r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.10.02.18.29.48_Lacto_DSSO_R2"
+path_r3 = r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.10.02.18.35.44_Lacto_DSSO_R3"
 
 
 def extractInfo(path):

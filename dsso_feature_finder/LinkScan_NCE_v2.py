@@ -142,7 +142,7 @@ def getTheroIons(pep, modCell):
     #############Internal ions mass 1+  cleave at linker and backbone######
 
     return [b1IonPepAlpha, y1IonPepAlpha, b1IonPepBeta, y1IonPepBeta], \
-            [a_long_mass, a_short_mass, b_long_mass, b_short_mass],\
+            [a_short_mass, a_long_mass, b_short_mass, b_long_mass],\
             [IntenalIonLongAlpha, IntenalIonShortAlpha, IntenalIonLongBeta, IntenalIonShortBeta]
 
 
@@ -228,17 +228,17 @@ def match_report_ion(mass_list, spec, max_c, fmatched):
                     mass_cur_list[i], ms2_dic)[1:]
                 rep_mask[i] += 1
                 if i == 0:
-                    fmatched.write('charge=%d\tmz=%f\ttype=Alpha_long_mass\n' %
+                    fmatched.write('charge=%d\tmz=%f\ttype=Alpha_short_mass\n' %
                                    (c, mass_list[i]))
                 elif i == 1:
                     fmatched.write(
-                        'charge=%d\tmz=%f\ttype=Alpha_short_mass\n' %
+                        'charge=%d\tmz=%f\ttype=Alpha_long_mass\n' %
                         (c, mass_list[i]))
                 elif i == 2:
-                    fmatched.write('charge=%d\tmz=%f\ttype=Beta_long_mass\n' %
+                    fmatched.write('charge=%d\tmz=%f\ttype=Beta_short_mass\n' %
                                    (c, mass_list[i]))
                 else:
-                    fmatched.write('charge=%d\tmz=%f\ttype=Beta_short_mass\n' %
+                    fmatched.write('charge=%d\tmz=%f\ttype=Beta_long_mass\n' %
                                    (c, mass_list[i]))
 
                 if i not in match_dic:
@@ -486,7 +486,7 @@ def calIonRatio(pep, spec, charge, modCell, pepModToTheoIonDic, fmatched):
         match_dic)
     repState = ";".join([str(ele) for ele in rep_mask])
 
-    fmatched.write('---------internal PX---------------\n')
+    fmatched.write('---------internal PX Ions---------------\n')
     intXP_ratio, longCoverRatio, shortCoverRatio, pairRATIO = matchPepIntXP(In_pepA_long, In_pepA_short, In_pepB_long,
                                In_pepB_short, spec, fmatched)
 

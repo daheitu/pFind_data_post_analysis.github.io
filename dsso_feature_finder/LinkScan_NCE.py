@@ -338,6 +338,19 @@ def matchBYions(b1, y1, site, max_c, spec, fmatched):
     return common_mask, xlink_mask
 
 
+def judgeInternalPair(inLongMusk, inShortMusk):
+    internalPAIRmusk = [0] * len(inLongMusk)
+    if len(inLongMusk) != len(inShortMusk):
+        print("Warning: inLongMusk not equel to inShortMusk")
+    else:
+        for i in range(len(inLongMusk)):
+            if inLongMusk[i] > 0 and inShortMusk[i] > 0:
+                internalPAIRmusk[i] = 1
+            else:
+                internalPAIRmusk[i] = 0
+    return internalPAIRmusk
+
+
 def matchPepIntXP(In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short,
                   spec, fmatched):
     max_c = 2

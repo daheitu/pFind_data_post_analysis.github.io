@@ -8,10 +8,10 @@ sys.path.append(
 )
 from filter_Reuslt import main
 
-os.chdir(r"F:\MS_DATA_STORAGE\20190819\multiNCE\inclu_random_reverse")
+#os.chdir(r"F:\MS_DATA_STORAGE\20190819\multiNCE\inclu_random_reverse")
 
 flPath = r"./BSA_DSSO_INCLU_RANDOM_REVERSE_R1.ms2"
-incluPath = r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.08.19.19.57.19\inclusion_list.csv"
+incluPath = r"./inclusion_list.csv"
 mgfPath = r"./BSA_DSSO_INCLU_RANDOM_REVERSE_R1.mgf"
 
 LinkerMass = 158.004  # 交联剂质量
@@ -228,18 +228,18 @@ def match_report_ion(mass_list, spec, max_c, fmatched):
                     mass_cur_list[i], ms2_dic)[1:]
                 rep_mask[i] += 1
                 if i == 0:
-                    fmatched.write('charge=%d\tmz=%f\ttype=Alpha_short_mass\n' %
-                                   (c, mass_list[i]))
+                    fmatched.write('charge=%d\tmz=%f\ttype=Alpha_short_mass\t1+mass=%f\n' %
+                                   (c, matchedMZ, mass_list[i]))
                 elif i == 1:
                     fmatched.write(
-                        'charge=%d\tmz=%f\ttype=Alpha_long_mass\n' %
-                        (c, mass_list[i]))
+                        'charge=%d\tmz=%f\ttype=Alpha_long_mass\t1+mass=%f\n' %
+                        (c, matchedMZ, mass_list[i]))
                 elif i == 2:
-                    fmatched.write('charge=%d\tmz=%f\ttype=Beta_short_mass\n' %
-                                   (c, mass_list[i]))
+                    fmatched.write('charge=%d\tmz=%f\ttype=Beta_short_mass\t1+mass=%f\n' %
+                                   (c, matchedMZ, mass_list[i]))
                 else:
-                    fmatched.write('charge=%d\tmz=%f\ttype=Beta_long_mass\n' %
-                                   (c, mass_list[i]))
+                    fmatched.write('charge=%d\tmz=%f\ttype=Beta_long_mass\t1+mass=%f\n' %
+                                   (c, matchedMZ, mass_list[i]))
 
                 if i not in match_dic:
                     match_dic[i] = [[
@@ -248,6 +248,7 @@ def match_report_ion(mass_list, spec, max_c, fmatched):
                 else:
                     match_dic[i].append(
                         [c, mass_cur_list[i], matchedMZ, matchedRelInts])
+    fmatched.write("reporter ions matched: " + str(rep_mask) + "\n")
     return match_dic, rep_mask
 
 
@@ -401,7 +402,11 @@ def matchPepIntXP(In_pepA_long, In_pepA_short, In_pepB_long, In_pepB_short,
             
             if isMatched(inPBXL_cur[i], spec) and isMatched(inPBXS_cur[i], spec):
                 pairBetaMusk[i] += 1
-
+    
+    fmatched.write("Alpha interPX Long match: " + str(inPAXL_mask) + "\n")
+    fmatched.write("Alpha interPX short match: " + str(inPAXS_mask) + "\n")
+    fmatched.write("Beta interPX Long match: " + str(inPBXL_mask) + "\n")
+    fmatched.write("Beta interPX short match: "+ str(inPBXS_mask) + "\n")
     alphaLen = len(In_pepA_long)
     betaLen = len(In_pepB_long)
     longCoverRatio = 1 - (inPAXL_mask.count(0) + inPBXL_mask.count(0))/ (alphaLen + betaLen)
@@ -610,6 +615,7 @@ def main():
     for scan in scanNCEdic:
         ttl = scanNCEdic[scan]
         print(scan)
+        fmatched.write("scan number= %d" % scan + "\n")
         pep = ttl[3]
         modCell = ttl[4]
         charge = int(ttl[1])

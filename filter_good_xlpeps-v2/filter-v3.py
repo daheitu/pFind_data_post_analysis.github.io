@@ -7,7 +7,7 @@ Created on Sun Apr 28 15:52:57 2019
 import os
 from scipy.stats import norm
 
-path = r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.10.02.18.35.44_Lacto_DSSO_R3"
+path = r"C:\Users\Yong Cao\Documents\pLink\pLink_task_dsso_0.5_20191009"
 
 pLink2_id_folder = path
 inclusion_list = os.path.join(path, 'inclusion_list.csv')

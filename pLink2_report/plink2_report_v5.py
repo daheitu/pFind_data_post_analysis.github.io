@@ -5,11 +5,12 @@ This script can help you to summary the plink2 report file
 
 import os
 import re
+from calSynthiticNum import calsyntheticNum, calsyntheticNumforFix
 
 os.chdir(
-    r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.24.21.18.43_Integrin_LTG\reports"
+    r"F:\Script\pLink_task_2019.10.27_DSS_BSA_seperate\reports"
 )
-spec_cutoff = 0  # spectra number cut-off
+spec_cutoff = 3  # spectra number cut-off
 Best_evalue_cutoff = 2
 E_value_cutoff_SpecLvl = 2
 
@@ -74,28 +75,23 @@ def site_list_process(site_list, pepXLlist):
         return site, linkType
 
 
-def get_report_file_name():
-    path = os.getcwd()
-    path_d = os.path.dirname(path)
-    os.chdir(path_d)
-
+def get_report_file_name(): 
+    path_d = os.path.dirname(os.getcwd())
     file_list = os.listdir(path_d)
     for fl in file_list:
-        if fl[-5:] in ["pfind", "plink"]:
-            para = open(fl).readlines()
+        if fl.endswith("plink"):
+            para = open(os.path.join(path_d, fl)).readlines()
             for line in para:
-                #print(line)
-                if line[:10] == "spec_title":
-                    spec_title = line.rstrip("\n").split("=")[1].strip()
-                if line[:11] == "enzyme_name":
-                    enzyme = line.rstrip("\n").split("=")[1].strip()
-                if line[:7] == "linker1":
-                    linker = line.rstrip("\n").split("=")[1].strip()
+                if line.startswith("spec_title"):
+                    spec_title = line.split("=")[1].strip()
+                if line.startswith("enzyme_name"):
+                    enzyme = line.split("=")[1].strip()
+                if line.startswith("linker1"):
+                    linker = line.split("=")[1].strip()
         else:
             continue
 
-    report_file_name = spec_title + "_" + enzyme + "_" + linker + "v5.txt"
-    os.chdir(path)
+    report_file_name = spec_title + "_" + enzyme + "_" + linker + "_v5.csv"
     return report_file_name
 
 
@@ -118,7 +114,7 @@ def get_crosslink_site_info(site_table, b):
         col.append(name + "_E-value")
         col.append(name + "_UniquePepNum")
 
-    b.write('\t'.join(col))
+    b.write(','.join(col))
     b.write('\n')
     return raw_name_list
 
@@ -128,7 +124,7 @@ def cal_sumOfOneColumn(openedfl, k_column):
     k = k_column
     sumNum = 0
     for line in f[1:]:
-        lineList = line.rstrip("\n").split("\t")
+        lineList = line.rstrip("\n").split(",")
         val = lineList[k]
         if val:
             sumNum += int(lineList[k])
@@ -140,7 +136,7 @@ def cal_numRange(openedfl, k_column):
     k = k_column
     valList = []
     for line in f[1:]:
-        lineList = line.rstrip("\n").split("\t")
+        lineList = line.rstrip("\n").split(",")
         val = lineList[k]
         if val:
             valList.append(val)
@@ -148,16 +144,15 @@ def cal_numRange(openedfl, k_column):
     return newList[0] + "--" + newList[-1]
 
 
-def statistic_report_file():
-    report_file_name = get_report_file_name()
+def statistic_report_file(report_file_name):
     c = open(report_file_name, 'a')
     rep_table = open(report_file_name, 'r').readlines()
-    title_list = rep_table[0].split("\t")
+    title_list = rep_table[0].split(",")
     col_dic = {}
-    total_colom = len(rep_table[0].strip().split("\t"))
+    total_colom = len(rep_table[0].strip().split(","))
     intra_num = 0
     for i in range(1, len(rep_table)):
-        if rep_table[i].strip("\n").split("\t")[5] == "Intra":
+        if rep_table[i].strip("\n").split(",")[5] == "Intra":
             intra_num += 1
     col_dic[5] = float(intra_num) / (float(len(rep_table)) - 1.0)
     col_dic[0] = len(rep_table) - 1
@@ -178,7 +173,7 @@ def statistic_report_file():
     last = []
     for k in range(total_colom):
         last.append(str(col_dic[k]))
-    c.write("\t".join([str(ele) for ele in last]) + "\n")
+    c.write(",".join([str(ele) for ele in last]) + "\n")
     raw_dic = {}
     for i in range(7, len(title_list)):
         raw_name_list = title_list[i].split("_")[:-1]
@@ -191,7 +186,7 @@ def statistic_report_file():
     raw_list = list(raw_dic.keys())
     raw_list.sort()
     for raw in raw_list:
-        c.write("\t".join(raw_dic[raw]))
+        c.write(",".join(raw_dic[raw]))
         c.write("\n")
 
     c.close()
@@ -215,19 +210,14 @@ def splitResult(openedfl, raw_name_list):
         else:
             print(n)
 
-        cell1 = f[p].rstrip("\n").split(",")[0]
-
-        if cell1.isdigit():
-            pass
-        else:
-            while p < len(f):
-                line_list = f[p].rstrip("\n").split(",")
-                if line_list[0] == "" and line_list[1].isdigit():
-                    break
-                else:
-                    if line_list[0] == "SameSet":
-                        site_list.append(line_list[1])
-                    p += 1
+        while p < len(f):
+            line_list = f[p].rstrip("\n").split(",")
+            if line_list[0] == "" and line_list[1].isdigit():
+                break
+            else:
+                if line_list[0] == "SameSet":
+                    site_list.append(line_list[1])
+                p += 1
 
         site = site_list_process(site_list, ["WFC(2)-XSV(2)"])[0]
         if site == "":
@@ -296,7 +286,7 @@ def splitResult(openedfl, raw_name_list):
                         ]
                     rep_list.extend(SEP)
 
-                finalList.append("\t".join([str(ele) for ele in rep_list]))
+                finalList.append(",".join([str(ele) for ele in rep_list]))
 
         n = p
     return finalList
@@ -320,14 +310,15 @@ def main():
     raw_name_list = get_crosslink_site_info(f, b)
     finalList = splitResult(f, raw_name_list)
     finalList = sorted(finalList,
-                       key=lambda x: int(x.split("\t")[1]),
+                       key=lambda x: int(x.split(",")[1]),
                        reverse=True)
     for line in finalList:
         b.write(line + "\n")
     b.close()
     print("Well Done")
-    #statistic_report_file()
-
+    statistic_report_file(report_file_name)
+    #calsyntheticNum(report_file_name, "IR-9", "FR-9")
+    #calsyntheticNumforFix(report_file_name, "FR-9")
 
 if __name__ == "__main__":
     main()

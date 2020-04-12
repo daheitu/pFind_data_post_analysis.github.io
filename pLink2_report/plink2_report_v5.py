@@ -11,10 +11,11 @@ os.chdir(
     r"F:\Script\pLink_task_2019.10.27_DSS_BSA_seperate\reports"
 )
 spec_cutoff = 3  # spectra number cut-off
-Best_evalue_cutoff = 2
-E_value_cutoff_SpecLvl = 2
+Best_evalue_cutoff = 2 # 交联位点对层次最好的e-value cutoff
+E_value_cutoff_SpecLvl = 2 # 谱图层次的e-value cutoff
 
 
+#根据交联位点信息和交联肽段信息判断inter还是intra
 def judgeHomoHetro(linked_site, pepXL):
     pos_list = re.findall("\((\d*)\)", linked_site)
     position1 = pos_list[0]
@@ -46,6 +47,7 @@ def judgeHomoHetro(linked_site, pepXL):
             return "Inter"
 
 
+# 位点处理，将位点对里面的反库蛋白和污染蛋白的交联对剔除
 def site_list_process(site_list, pepXLlist):
     i = 0
     while i < len(site_list):
@@ -75,6 +77,7 @@ def site_list_process(site_list, pepXLlist):
         return site, linkType
 
 
+# 获取报告文件的名称，读取上级文件夹下的.plink文件查找交联剂和酶的名称,若找不到则返回“pLink_summary.csv”
 def get_report_file_name(): 
     path_d = os.path.dirname(os.getcwd())
     file_list = os.listdir(path_d)
@@ -88,13 +91,12 @@ def get_report_file_name():
                     enzyme = line.split("=")[1].strip()
                 if line.startswith("linker1"):
                     linker = line.split("=")[1].strip()
-        else:
-            continue
-
-    report_file_name = spec_title + "_" + enzyme + "_" + linker + "_v5.csv"
-    return report_file_name
+            report_file_name = spec_title + "_" + enzyme + "_" + linker + "_v5.csv"
+            return report_file_name
+    return "pLink_summary.csv"
 
 
+# 根据报告文件获取所有raw文件的名称
 def get_crosslink_site_info(site_table, b):
     raw_name_list = []
     for line in site_table[2:]:
@@ -119,6 +121,7 @@ def get_crosslink_site_info(site_table, b):
     return raw_name_list
 
 
+#计算openedfl的某一列k的和
 def cal_sumOfOneColumn(openedfl, k_column):
     f = openedfl
     k = k_column
@@ -131,6 +134,7 @@ def cal_sumOfOneColumn(openedfl, k_column):
     return sumNum
 
 
+#计算openedfl某一列k的取值范围
 def cal_numRange(openedfl, k_column):
     f = openedfl
     k = k_column

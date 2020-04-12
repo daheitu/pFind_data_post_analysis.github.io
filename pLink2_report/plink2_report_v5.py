@@ -80,20 +80,24 @@ def site_list_process(site_list, pepXLlist):
 # 获取报告文件的名称，读取上级文件夹下的.plink文件查找交联剂和酶的名称,若找不到则返回“pLink_summary.csv”
 def get_report_file_name(): 
     path_d = os.path.dirname(os.getcwd())
-    file_list = os.listdir(path_d)
-    for fl in file_list:
-        if fl.endswith("plink"):
-            para = open(os.path.join(path_d, fl)).readlines()
-            for line in para:
-                if line.startswith("spec_title"):
-                    spec_title = line.split("=")[1].strip()
-                if line.startswith("enzyme_name"):
-                    enzyme = line.split("=")[1].strip()
-                if line.startswith("linker1"):
-                    linker = line.split("=")[1].strip()
-            report_file_name = spec_title + "_" + enzyme + "_" + linker + "_v5.csv"
-            return report_file_name
-    return "pLink_summary.csv"
+    try:
+        file_list = os.listdir(path_d)
+        for fl in file_list:
+            if fl.endswith("plink"):
+                para = open(os.path.join(path_d, fl)).readlines()
+                for line in para:
+                    if line.startswith("spec_title"):
+                        spec_title = line.split("=")[1].strip()
+                    if line.startswith("enzyme_name"):
+                        enzyme = line.split("=")[1].strip()
+                    if line.startswith("linker1"):
+                        linker = line.split("=")[1].strip()
+                report_file_name = "_".join([spec_title, linker, enzyme, "v5.csv"])
+                #spec_title + "_" + enzyme + "_" + linker + "_v5.csv"
+                return report_file_name
+        return "pLink_summary.csv"
+    except:
+        return "pLink_summary.csv"
 
 
 # 根据报告文件获取所有raw文件的名称
@@ -141,60 +145,47 @@ def cal_numRange(openedfl, k_column):
     valList = []
     for line in f[1:]:
         lineList = line.rstrip("\n").split(",")
-        val = lineList[k]
-        if val:
-            valList.append(val)
-    newList = sorted(valList, key=lambda x: float(x))
-    return newList[0] + "--" + newList[-1]
+        if lineList[k]:
+            valList.append(float(lineList[k]))
+    valList.sort()
+    return "{0:.1e}~{1:.1e}".format(valList[0], valList[-1])
 
 
 def statistic_report_file(report_file_name):
     c = open(report_file_name, 'a')
-    rep_table = open(report_file_name, 'r').readlines()
-    title_list = rep_table[0].split(",")
-    col_dic = {}
-    total_colom = len(rep_table[0].strip().split(","))
+    f = open(report_file_name, 'r').readlines()
+    col_num = len(f[0].split(","))
+    stat_list = [""]*col_num
+    total_colom = len(f[0].split(","))
+    ttl_sites_num = len(f) - 1
     intra_num = 0
-    for i in range(1, len(rep_table)):
-        if rep_table[i].strip("\n").split(",")[5] == "Intra":
+    for i in range(1, len(f)):
+        if f[i].strip("\n").split(",")[5] == "Intra":
             intra_num += 1
-    col_dic[5] = float(intra_num) / (float(len(rep_table)) - 1.0)
-    col_dic[0] = len(rep_table) - 1
-    col_dic[1] = cal_sumOfOneColumn(rep_table, 1)
-    col_dic[2] = ""
-    col_dic[3] = ""
-    col_dic[4] = ""
+    stat_list[5] = round(intra_num / ttl_sites_num, 2)
+    stat_list[0] = ttl_sites_num
+    stat_list[1] = cal_sumOfOneColumn(f, 1)
 
     column_sub_dic = {}
     for k in [6, 8]:
         for j in range(k, total_colom, 3):
-            #print("the column is " + str(j))
-            col_dic[j] = cal_sumOfOneColumn(rep_table, j)
+            stat_list[j] = cal_sumOfOneColumn(f, j)
 
     for j in range(7, total_colom, 3):
-        col_dic[j] = cal_numRange(rep_table, j)
+        stat_list[j] = cal_numRange(f, j)
 
-    last = []
-    for k in range(total_colom):
-        last.append(str(col_dic[k]))
-    c.write(",".join([str(ele) for ele in last]) + "\n")
-    raw_dic = {}
-    for i in range(7, len(title_list)):
-        raw_name_list = title_list[i].split("_")[:-1]
+    c.write(",".join([str(ele) if type(ele) != str else ele \
+                        for ele in stat_list]) + "\n\n")
+    
+    c.write("Raw_Name,# of Pep,# of Spec,e-value range\n")
+    for i in range(6, col_num, 3):
+        raw_name_list = f[0].split(",")[i].split("_")[:-1]
         raw_name = "_".join(raw_name_list)
-        if raw_name not in raw_dic:
-            raw_dic[raw_name] = [raw_name, last[i]]
-        else:
-            raw_dic[raw_name].append(last[i])
-
-    raw_list = list(raw_dic.keys())
-    raw_list.sort()
-    for raw in raw_list:
-        c.write(",".join(raw_dic[raw]))
-        c.write("\n")
-
+        wlist = [stat_list[i+2], stat_list[i], stat_list[i+1]]
+        wlist.insert(0, raw_name)
+        c.write(",".join([str(ele) for ele in wlist])+"\n")
+              
     c.close()
-    return
 
 
 def splitResult(openedfl, raw_name_list):
@@ -206,8 +197,7 @@ def splitResult(openedfl, raw_name_list):
         pep_dic = {}
         evalue_dic = {}
 
-        line = f[n]
-        line_list = line.rstrip("\n").split(",")
+        line_list = f[n].rstrip("\n").split(",")
         if line_list[0].isdigit():
             site_list = [line_list[1]]
             p = n + 1
@@ -242,8 +232,8 @@ def splitResult(openedfl, raw_name_list):
                     if pep_std not in pep_std_list:
                         pep_std_list.append(pep_std)
 
-                    evalue = line_list[8]
-                    if float(evalue) < E_value_cutoff_SpecLvl:
+                    evalue = float(line_list[8])
+                    if evalue < E_value_cutoff_SpecLvl:
                         pep = line_list[5]
                         raw_name = line_list[2][:line_list[2].find(".")]
                         if raw_name not in spec_dic:
@@ -260,7 +250,7 @@ def splitResult(openedfl, raw_name_list):
                         if raw_name not in evalue_dic:
                             evalue_dic[raw_name] = evalue
                         else:
-                            if float(evalue) < float(evalue_dic[raw_name]):
+                            if evalue < evalue_dic[raw_name]:
                                 evalue_dic[raw_name] = evalue
 
                     p += 1
@@ -321,8 +311,7 @@ def main():
     b.close()
     print("Well Done")
     statistic_report_file(report_file_name)
-    #calsyntheticNum(report_file_name, "IR-9", "FR-9")
-    #calsyntheticNumforFix(report_file_name, "FR-9")
+
 
 if __name__ == "__main__":
     main()

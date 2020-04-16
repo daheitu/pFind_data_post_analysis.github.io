@@ -22,7 +22,7 @@ def makedir(rootpath, dir_name):
     if os.path.exists(path):
         pass
     else:
-        os.mkdir(path)
+        os.makedirs(path)
 
 
 def get_pParse_para():
@@ -71,7 +71,7 @@ def run_searcher(flow_type):
             if line.startswith("processor_num ="):
                 b.write("processor_num = 3\n")
             elif line.startswith("result_output_path"):
-                b.write("result_output_path = " + os.path.join(raw_path, "output") +"\n")
+                b.write("result_output_path = " + os.path.join(raw_path, output_name) +"\n")
             elif line.startswith("db_name"):
                 b.write("db_name = " + db_name + "\n")
             elif line.startswith("evalue ="):
@@ -93,7 +93,7 @@ def run_searcher(flow_type):
     b.write("quant = 1|None\n")
     b.close()
     cmd_search = "searcher.exe " + plink_path
-    #os.system(cmd_search)
+    os.system(cmd_search)
 
 
 def main():

@@ -6,14 +6,14 @@ This script can help you to summary the plink2 report file
 import os
 import re
 
-reports_path = r"G:\msData\20200419\BSA\DSS\output\reports"
+os.chdir(
+    r"F:\Script\pLink_task_2019.10.27_DSS_BSA_seperate\reports"
+)
+spec_cutoff = 0  # spectra number cut-off
+Best_evalue_cutoff = 2
+E_value_cutoff_SpecLvl = 2
 
-spec_cutoff = 3  # spectra number cut-off
-Best_evalue_cutoff = 2 # 交联位点对层次最好的e-value cutoff
-E_value_cutoff_SpecLvl = 2 # 谱图层次的e-value cutoff
 
-
-#根据交联位点信息和交联肽段信息判断inter还是intra
 def judgeHomoHetro(linked_site, pepXL):
     pos_list = re.findall("\((\d*)\)", linked_site)
     position1 = pos_list[0]
@@ -45,7 +45,6 @@ def judgeHomoHetro(linked_site, pepXL):
             return "Inter"
 
 
-# 位点处理，将位点对里面的反库蛋白和污染蛋白的交联对剔除
 def site_list_process(site_list, pepXLlist):
     i = 0
     while i < len(site_list):
@@ -75,42 +74,55 @@ def site_list_process(site_list, pepXLlist):
         return site, linkType
 
 
-# 获取报告文件的名称，读取上级文件夹下的.plink文件查找交联剂和酶的名称,若找不到则返回“pLink_summary.csv”
-def get_report_file_name(): 
-    path_d = os.path.dirname(os.getcwd())
-    try:
-        file_list = os.listdir(path_d)
-        for fl in file_list:
-            if fl.endswith("plink"):
-                para = open(os.path.join(path_d, fl)).readlines()
-                for line in para:
-                    if line.startswith("spec_title"):
-                        spec_title = line.split("=")[1].strip()
-                    if line.startswith("enzyme_name"):
-                        enzyme = line.split("=")[1].strip()
-                    if line.startswith("linker1"):
-                        linker = line.split("=")[1].strip()
-                report_file_name = "_".join([spec_title, linker, enzyme, "v5.csv"])
-                return report_file_name
-        return "pLink_summary.csv"
-    except:
-        return "pLink_summary.csv"
+def get_report_file_name():
+    path = os.getcwd()
+    path_d = os.path.dirname(path)
+    os.chdir(path_d)
+
+    file_list = os.listdir(path_d)
+    for fl in file_list:
+        if fl[-5:] in ["pfind", "plink"]:
+            para = open(fl).readlines()
+            for line in para:
+                #print(line)
+                if line[:10] == "spec_title":
+                    spec_title = line.rstrip("\n").split("=")[1].strip()
+                if line[:11] == "enzyme_name":
+                    enzyme = line.rstrip("\n").split("=")[1].strip()
+                if line[:7] == "linker1":
+                    linker = line.rstrip("\n").split("=")[1].strip()
+        else:
+            continue
+
+    report_file_name = spec_title + "_" + enzyme + "_" + linker + "v5.csv"
+    os.chdir(path)
+    return report_file_name
 
 
-# 根据报告文件获取所有raw文件的名称
-def get_crosslink_site_info(site_table):
+def get_crosslink_site_info(site_table, b):
     raw_name_list = []
     for line in site_table[2:]:
         line_list = line.rstrip("\n").split(",")
         if line_list[0] == "":
-            raw_name = line_list[2].split(".")[0]
+            raw_name = line_list[2][:line_list[2].find(".")]
             if raw_name not in raw_name_list:
                 raw_name_list.append(raw_name)
     raw_name_list.sort()
+    print("All raw files are: " + ",".join(raw_name_list))
+    col = [
+        "Linked Site", "Total Spec", "Best E-value", "Best Svm Score",
+        "Peptide", "Inter or Intra Molecular"
+    ]
+    for name in raw_name_list:
+        col.append(name + "_SpecNum")
+        col.append(name + "_E-value")
+        col.append(name + "_UniquePepNum")
+
+    b.write(','.join(col))
+    b.write('\n')
     return raw_name_list
 
 
-#计算openedfl的某一列k的和
 def cal_sumOfOneColumn(openedfl, k_column):
     f = openedfl
     k = k_column
@@ -123,57 +135,69 @@ def cal_sumOfOneColumn(openedfl, k_column):
     return sumNum
 
 
-#计算openedfl某一列k的取值范围
 def cal_numRange(openedfl, k_column):
     f = openedfl
     k = k_column
     valList = []
     for line in f[1:]:
         lineList = line.rstrip("\n").split(",")
-        if lineList[k]:
-            valList.append(float(lineList[k]))
-    valList.sort()
-    return "{0:.1e}~{1:.1e}".format(valList[0], valList[-1])
+        val = lineList[k]
+        if val:
+            valList.append(val)
+    newList = sorted(valList, key=lambda x: float(x))
+    return newList[0] + "--" + newList[-1]
 
 
 def statistic_report_file():
     report_file_name = get_report_file_name()
     c = open(report_file_name, 'a')
-    f = open(report_file_name, 'r').readlines()
-    col_num = len(f[0].split(","))
-    stat_list = [""]*col_num
-    total_colom = len(f[0].split(","))
-    ttl_sites_num = len(f) - 1
+    rep_table = open(report_file_name, 'r').readlines()
+    title_list = rep_table[0].split(",")
+    col_dic = {}
+    total_colom = len(rep_table[0].strip().split(","))
     intra_num = 0
-    for i in range(1, len(f)):
-        if f[i].strip("\n").split(",")[5] == "Intra":
+    for i in range(1, len(rep_table)):
+        if rep_table[i].strip("\n").split(",")[5] == "Intra":
             intra_num += 1
-    stat_list[5] = round(intra_num / ttl_sites_num, 2)
-    stat_list[0] = ttl_sites_num
-    stat_list[1] = cal_sumOfOneColumn(f, 1)
+    col_dic[5] = float(intra_num) / (float(len(rep_table)) - 1.0)
+    col_dic[0] = len(rep_table) - 1
+    col_dic[1] = cal_sumOfOneColumn(rep_table, 1)
+    col_dic[2] = ""
+    col_dic[3] = ""
+    col_dic[4] = ""
 
     column_sub_dic = {}
     for k in [6, 8]:
         for j in range(k, total_colom, 3):
-            stat_list[j] = cal_sumOfOneColumn(f, j)
+            col_dic[j] = cal_sumOfOneColumn(rep_table, j)
 
     for j in range(7, total_colom, 3):
-        stat_list[j] = cal_numRange(f, j)
+        col_dic[j] = cal_numRange(rep_table, j)
 
-    c.write(",".join([str(ele) if type(ele) != str else ele \
-                        for ele in stat_list]) + "\n\n")
-    
-    c.write("Raw_Name,# of Pep,# of Spec,e-value range\n")
-    for i in range(6, col_num, 3):
-        raw_name_list = f[0].split(",")[i].split("_")[:-1]
+    last = []
+    for k in range(total_colom):
+        last.append(str(col_dic[k]))
+    c.write(",".join([str(ele) for ele in last]) + "\n")
+    """
+    raw_dic = {}
+    for i in range(7, len(title_list)):
+        raw_name_list = title_list[i].split("_")[:-1]
         raw_name = "_".join(raw_name_list)
-        wlist = [stat_list[i+2], stat_list[i], stat_list[i+1]]
-        wlist.insert(0, raw_name)
-        c.write(",".join([str(ele) for ele in wlist])+"\n")
+        if raw_name not in raw_dic:
+            raw_dic[raw_name] = [raw_name, last[i]]
+        else:
+            raw_dic[raw_name].append(last[i])
+
+    raw_list = list(raw_dic.keys())
+    raw_list.sort()
+    for raw in raw_list:
+        c.write(",".join(raw_dic[raw]))
+        c.write("\n")
+    """
     c.close()
 
 
-def splitResult(openedfl, raw_name_list, spec_cutoff, Best_evalue_cutoff, E_value_cutoff_SpecLvl=2):
+def splitResult(openedfl, raw_name_list):
     finalList = []
     f = openedfl
     n = 2
@@ -182,21 +206,27 @@ def splitResult(openedfl, raw_name_list, spec_cutoff, Best_evalue_cutoff, E_valu
         pep_dic = {}
         evalue_dic = {}
 
-        line_list = f[n].rstrip("\n").split(",")
+        line = f[n]
+        line_list = line.rstrip("\n").split(",")
         if line_list[0].isdigit():
             site_list = [line_list[1]]
             p = n + 1
         else:
             print(n)
 
-        while p < len(f):
-            line_list = f[p].rstrip("\n").split(",")
-            if line_list[0] == "" and line_list[1].isdigit():
-                break
-            else:
-                if line_list[0] == "SameSet":
-                    site_list.append(line_list[1])
-                p += 1
+        cell1 = f[p].rstrip("\n").split(",")[0]
+
+        if cell1.isdigit():
+            pass
+        else:
+            while p < len(f):
+                line_list = f[p].rstrip("\n").split(",")
+                if line_list[0] == "" and line_list[1].isdigit():
+                    break
+                else:
+                    if line_list[0] == "SameSet":
+                        site_list.append(line_list[1])
+                    p += 1
 
         site = site_list_process(site_list, ["WFC(2)-XSV(2)"])[0]
         if site == "":
@@ -217,8 +247,8 @@ def splitResult(openedfl, raw_name_list, spec_cutoff, Best_evalue_cutoff, E_valu
                     if pep_std not in pep_std_list:
                         pep_std_list.append(pep_std)
 
-                    evalue = float(line_list[8])
-                    if evalue < E_value_cutoff_SpecLvl:
+                    evalue = line_list[8]
+                    if float(evalue) < E_value_cutoff_SpecLvl:
                         pep = line_list[5]
                         raw_name = line_list[2][:line_list[2].find(".")]
                         if raw_name not in spec_dic:
@@ -235,7 +265,7 @@ def splitResult(openedfl, raw_name_list, spec_cutoff, Best_evalue_cutoff, E_valu
                         if raw_name not in evalue_dic:
                             evalue_dic[raw_name] = evalue
                         else:
-                            if evalue < evalue_dic[raw_name]:
+                            if float(evalue) < float(evalue_dic[raw_name]):
                                 evalue_dic[raw_name] = evalue
 
                     p += 1
@@ -246,11 +276,12 @@ def splitResult(openedfl, raw_name_list, spec_cutoff, Best_evalue_cutoff, E_valu
             min_evalue = 1
             for key in evalue_dic:
                 total_spec += spec_dic[key]
-                if evalue_dic[key] < min_evalue:
+                if float(evalue_dic[key]) < float(min_evalue):
                     min_evalue = evalue_dic[key]
                 else:
                     continue
-            if total_spec >= spec_cutoff and min_evalue < Best_evalue_cutoff:
+            if total_spec > spec_cutoff and float(
+                    min_evalue) < Best_evalue_cutoff:
                 rep_list = [site, total_spec, min_evalue,\
                     bestSVMscore, totalPep, link_type]
 
@@ -267,51 +298,34 @@ def splitResult(openedfl, raw_name_list, spec_cutoff, Best_evalue_cutoff, E_valu
                 finalList.append(",".join([str(ele) for ele in rep_list]))
 
         n = p
-
-    finalList = sorted(finalList,
-                       key=lambda x: int(x.split(",")[1]),
-                       reverse=True)
     return finalList
 
 
-def find_xlPeptides_File(reports_path):
-    for fl in os.listdir(reports_path):
-        if fl.endswith("cross-linked_sites.csv"):
-            return fl
-    return ""
+def main():
+    filename_list = os.listdir(os.getcwd())
+    link_site_file = ""
+    for fl in filename_list:
+        if fl[-22:-4] == "cross-linked_sites":
+            link_site_file = fl
+        else:
+            continue
+    if link_site_file == "":
+        print("Please check your cross-linked_sites file")
+    else:
+        f = open(link_site_file, 'r').readlines()
 
-
-def write2report(raw_name_list, final_list):
     report_file_name = get_report_file_name()
     b = open(report_file_name, 'w')
-    
-    col = ["XL-sites", "XL-peptide", "Total Spec", \
-        "Best E-value", "Best Svm Score", "Inter or Intra Molecular"
-    ]
-    for name in raw_name_list:
-        col.append(name + "_SpecNum")
-        col.append(name + "_E-value")
-        col.append(name + "_PepNum")
-
-    b.write(','.join(col)+"\n")
-    for line in final_list:
+    raw_name_list = get_crosslink_site_info(f, b)
+    finalList = splitResult(f, raw_name_list)
+    finalList = sorted(finalList,
+                       key=lambda x: int(x.split(",")[1]),
+                       reverse=True)
+    for line in finalList:
         b.write(line + "\n")
     b.close()
-
-
-def main_flow(reports_path, spec_cutoff, Best_evalue_cutoff):
-    os.chdir(reports_path)
-    xlsitesfl = find_xlPeptides_File(reports_path)
-    if xlsitesfl == "":
-        print("Please check your file")
-    else:
-        f = open(xlsitesfl).readlines()
-        raw_name_list = get_crosslink_site_info(f)
-        finalList = splitResult(f, raw_name_list, spec_cutoff, Best_evalue_cutoff)
-        write2report(raw_name_list, finalList)
-        print("The task is finished")
-        statistic_report_file()
-
+    print("Well Done")
+    statistic_report_file()
 
 if __name__ == "__main__":
-    main_flow(reports_path, spec_cutoff, Best_evalue_cutoff)
+    main()

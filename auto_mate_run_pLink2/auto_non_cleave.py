@@ -1,20 +1,19 @@
 # coding = utf-8
+# author: Yong Cao
+
+# coding = utf-8
 
 import os, time
 
 raw_p = r"G:\msData\20200419\BSA"
 plink_bin_path = r"E:\pFindStudio\pLink\2.3.9_20200327\bin"
-plink_para_demo = r"E:\pFindStudio\pLink_test_20200330\pLink_test_20200330\2.pLink2_plus_score_massfilter\2.pLink2_plus_score_massfilter.plink"
-db_name = "bsa_con" # "CNGP_con" # "GST_sequence_con" # "BSA_with_resoure"
+# plink_para_demo = r"E:\pFindStudio\pLink_test_20200330\pLink_test_20200330\2.pLink2_plus_score_massfilter\2.pLink2_plus_score_massfilter.plink"
+# db_name = "Lactoferrin_con" # "CNGP_con" # "GST_sequence_con" # "BSA_with_resoure"
 
-#flow_type = 0 # 0 for +score； 1 for +mass filter； 2 for pLink-DSSO
-
-
-type_name_dic = {0:"_score", 1:"_mass_filter", 2:"_plink_dsso"}
-
-type_para_dic = {0:('0', "FT_ION_INDEX"),
-                1:('1', "FT_ION_INDEX"),
-                2:('1', 'FT_SteppedCleavage_PEP_INDEX')}
+db_name_dic = {"BSA":"bsa_con", 
+                "CNGP": "CNGP_con",
+                "GST": "GST_sequence_con",
+                "Lacto": "Lactoferrin_con"}
 
 
 def makedir(rootpath, dir_name):
@@ -26,7 +25,8 @@ def makedir(rootpath, dir_name):
 
 
 def get_pParse_para(raw_path):
-    f = open(os.path.join(plink_bin_path, "pParse.para")).readlines()
+    os.chdir(plink_bin_path)
+    f = open("pParse.para").readlines()
     makedir(raw_path, "pParse_para")
     pParse_path = os.path.join(raw_path, "pParse_para", "pParse.para")
     b = open(pParse_path, 'w')
@@ -36,7 +36,6 @@ def get_pParse_para(raw_path):
         else:
             b.write(line)
     b.close()
-    os.chdir(plink_bin_path)
     cmd_pparse = "pParse.exe " + pParse_path
     os.system(cmd_pparse)
 
@@ -55,31 +54,24 @@ def count_pf2_file(raw_path):
 #print(count_pf2_file(raw_path))
 
 
-def run_searcher(flow_type, linker, raw_path):
-    f = open(plink_para_demo).readlines()
-    output_name = "output%s" % (type_name_dic[flow_type])
+def run_searcher(linker, raw_path, db_name):
+    f = open("./demo_DSS.plink").readlines()
+    output_name = "output"
     makedir(raw_path, output_name)
-    plink_para_name = "plink2%s.plink" % (type_name_dic[flow_type])
+    plink_para_name = "plink2.plink" 
     plink_path = os.path.join(raw_path, output_name, plink_para_name)
     b = open(plink_path, 'w')
-    para_massF, flow_type_inner = type_para_dic[flow_type]
     for line in f:
         if line.startswith("[spectrum]"):
             b.write(line)
             break
         else:
-            if line.startswith("processor_num ="):
-                b.write("processor_num = 3\n")
-            elif line.startswith("result_output_path"):
+            if line.startswith("result_output_path"):
                 b.write("result_output_path = " + os.path.join(raw_path, output_name) +"\n")
             elif line.startswith("db_name"):
                 b.write("db_name = " + db_name + "\n")
             elif line.startswith("evalue ="):
                 b.write("evalue = 1\n")
-            elif line.startswith("flow_type"):
-                b.write("flow_type = %s\n" % flow_type_inner)
-            elif line.startswith("mass_filter_4_ion_index_flow"):
-                b.write("mass_filter_4_ion_index_flow = %s\n" % para_massF)
             elif line.startswith("linker1"):
                 b.write("linker1 = %s\n" % linker)
             else:
@@ -98,17 +90,14 @@ def run_searcher(flow_type, linker, raw_path):
     os.system(cmd_search)
 
 
-def main_flow(raw_path, linker):
+def main_flow(raw_path, linker, db_name):
     get_pParse_para(raw_path)
-    for i in range(3):    
-        flow_type = i
-        run_searcher(flow_type, linker, raw_path)        
+    run_searcher(linker, raw_path, db_name)
 
 
 if __name__ == "__main__":
     for root, dirs, fls in os.walk(raw_p):
-        if root.split("\\")[-1] == "DSSO":
+        db_name, linker = root.split("\\")[-2:]
+        if db_name != "Lacto" and linker in ["DSS", "BSMEG"]:
             print(root)
-            raw_path = root
-            linker = "DSSO"
-            main_flow(raw_path, linker)
+            main_flow(root, linker, db_name_dic[db_name])

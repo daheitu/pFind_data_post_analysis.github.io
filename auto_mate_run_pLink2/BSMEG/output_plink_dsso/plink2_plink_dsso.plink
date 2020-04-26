@@ -1,0 +1,47 @@
+[version]
+version = 2.3.9
+[score]
+simple_score_type = ST_XLINK_OBM25
+[flow]
+flow_type = FT_SteppedCleavage_PEP_INDEX
+query_peaks_number = 300
+processor_num = 3
+preproc_type = PPT_XLINK_CLV
+mass_filter_4_ion_index_flow = 1
+result_output_path = C:\Users\Yong Cao\Documents\github\pFind_data_post_analysis.github.io\auto_mate_run_pLink2\BSMEG\output_plink_dsso
+[database]
+db_name = BSA_with_resoure
+enzyme_name = Trypsin
+max_miss_site = 3
+min_pep_mass = 500
+max_pep_mass = 6000
+min_pep_len = 5
+max_pep_len = 60
+[modification]
+fix_total = 1
+fix_mod1 = Carbamidomethyl[C]
+var_total = 1
+var_mod1 = Oxidation[M]
+[linker]
+linker_total = 1
+linker1 = BSMEG
+[ions]
+fragment_tol = 20
+fragment_tol_type = ppm
+peptide_tol = 10
+peptide_tol_type = ppm
+simple_instrument = HCD-MS-CLV-COARSE
+refined_instrument = HCD-MS-CLV-FINE
+[filter]
+filter_tol = 5
+filter_tol_type = ppm
+FDR = 0.05
+FDR_estimate_strategy = EFT_SPECTRAL_LEVEL
+fdr_separate_or_global = EFT_INTRA_INTER_SEPARATE_FDR
+evalue = 1
+[spectrum]
+spec_title = BSA_with_resoure_2020-04-19 
+spec_type = pf
+spec_num = 0
+[quant]
+quant = 1|None

@@ -15,8 +15,6 @@ prot_pdb_fasta_dic = {"CNGP":[r"G:\msData\20200419\CNGP\DSS\output\reports\3U28.
                     }
 
 
-
-
 AA_dict = dict(
     HIS="H", MET="M", THR="T",
     PHE="F", PRO="P", SER="S",
@@ -318,17 +316,7 @@ def main_cal_distance(sitesFl_path, pdb_path, fasta_path, repName):
     pdb_name = os.path.basename(pdb_path)
     fasta = open(fasta_path).readlines()
     B = open(repName, 'w')
-    # file_list = os.listdir(os.getcwd())
-    # for fl in file_list:
-    #     if fl[-6:] == ".fasta":
-    #         fasta = open(fl, 'r').readlines()
-    #         print("The fasta file is " + fl)
-    #     elif fl[-4:] == ".pdb":
-    #         pdb_name = fl[:-4]
-    #         pdb = open(fl, 'r').readlines()
-    #         print("The pdb file is " + pdb_name)
-    #     else:
-    #         continue
+    
 
     chain2protName_dic, pos_delta_pdb2fasta = get_fasta_pdb_info(fasta, pdb)
     strc_info_dic = pretreatment_pdb(pdb)

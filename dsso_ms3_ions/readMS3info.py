@@ -3,31 +3,32 @@ from copy import deepcopy
 import numpy as np
 
 
+# 读取ms3文件，获得谱图号以及其对应的mz，charge，队列能量等信息
 def readms3Info(ms3Path):
     ms3InfoDic = {}
-    f = open(ms3Path, 'r')
-    ms3Info = f.readlines()
+    f = open(ms3Path, 'r').readlines()
     i = 0
-    while i < len(ms3Info):
-        if ms3Info[i][0] != "S":
+    while i < len(f):
+        if f[i][0] != "S":
             i += 1
         else:
-            scanNum = int(ms3Info[i].strip().split("\t")[1])
-            precMS2mz, nceMS2 = ms3Info[i+6].strip().split(" ")[7].split("@")
-            precMS3mz, nceMS3 = ms3Info[i+6].strip().split(" ")[8].split("@")
+            scanNum = int(f[i].strip().split("\t")[1])
+            precMS2mz, nceMS2 = f[i+6].strip().split(" ")[7].split("@")
+            precMS3mz, nceMS3 = f[i+6].strip().split(" ")[8].split("@")
             precMS2mz = float(precMS2mz)
             precMS3mz = float(precMS3mz)
             actTypeMS2= "".join([ele for ele in nceMS2 if ele.isalpha()])
             engMS2 = int(float(nceMS2[nceMS2.find(actTypeMS2)+len(actTypeMS2):]))
             actTypeMS3= "".join([ele for ele in nceMS3 if ele.isalpha()])
             engMS3 = int(float(nceMS3[nceMS3.find(actTypeMS3)+len(actTypeMS3):]))
-            scanPrecMS2 = int(ms3Info[i+7].strip().split("\t")[2])
-            charge = int(ms3Info[i+9].strip().split("\t")[1])
+            scanPrecMS2 = int(f[i+7].strip().split("\t")[2])
+            charge = int(f[i+9].strip().split("\t")[1])
             ms3InfoDic[scanNum] = [scanNum, precMS3mz, charge, actTypeMS3, engMS3, scanPrecMS2, precMS2mz, actTypeMS2, engMS2]
             i += 10
     return ms3InfoDic
 
 
+# 根据ms3的信息，将来自同一ms2 的归并到ms2——triggered字典里
 def getLinageInfo(ms3InfoDic):
     ms2TriggerMS3dic = {}
     for scan in ms3InfoDic:
@@ -42,6 +43,7 @@ def getLinageInfo(ms3InfoDic):
     return ms2TriggerMS3dic
 
 
+# 遍历ms2文件，返回总的ms2的数目以及每个被触发三级的ms2的母离子质量和价态
 def readms2Info(ms2path, ms2TriggerMS3dic):
     f = open(ms2path, 'r')
     ms2f = f.readlines()
@@ -64,6 +66,7 @@ def readms2Info(ms2path, ms2TriggerMS3dic):
     return totalNumOfms2, ms2TriggerMS3dic
 
 
+
 def dealstrtuple(pairedInfo):
     pairedInfoList = []
     if ";" not in pairedInfo:
@@ -76,6 +79,7 @@ def dealstrtuple(pairedInfo):
     return pairedInfoList
 
 
+# 把ms2 triggered 信息写入文件
 def writeMs2ToMs3Info(ms2TriggerMS3dic, repName):
     b = open(repName, 'w')
     for ms2scan in ms2TriggerMS3dic:
@@ -632,37 +636,37 @@ def main():
     ms2TriggerMS3dic = getLinageInfo(ms3InfoDic)
     totalms2, ms2TriggerMS3dic = readms2Info("./DSSO_CID_MS2_CID_MS3_T1.ms2", ms2TriggerMS3dic)
     writeMs2ToMs3Info(ms2TriggerMS3dic, "ms2_ms3_linage.txt")
-    triggedNumMs2 = len(ms2TriggerMS3dic)
-    triggedRatio = triggedNumMs2/totalms2
+    # triggedNumMs2 = len(ms2TriggerMS3dic)
+    # triggedRatio = triggedNumMs2/totalms2
     
-    numWrongCal = calunmatcheddelta(ms2TriggerMS3dic, "unmatchedScans.txt")
-    ratioWrongCal = numWrongCal/numTotalMS3
-    writeMs2ToMs3Info(ms2TriggerMS3dic, "paired_info.txt")
-    numOFnondetect = pickupChargeZeroScan(ms2TriggerMS3dic, "charge_zero.txt")
-    ratiowrongcharge = numOFnondetect/numTotalMS3
-    print(ratioWrongCal, ratiowrongcharge)
-    paireDELTADic = calPairedIonDeltaPPM(ms2TriggerMS3dic)
-    zeroMed, otherMed = writeDeltaPPM(paireDELTADic, "deltappm.txt")
-    #print(zeroMed, otherMed)
-    writedeltaList(zeroMed, 'zeroMed.txt')
-    writedeltaList(otherMed, 'otherMed.txt')
-    print(stacMS2MS3(ms2TriggerMS3dic))
-    xlinkInTwoPDic, monoInTwoPDic, otherInTwoPDic = stac2pairinfo(ms2TriggerMS3dic)
-    print(len(xlinkInTwoPDic), len(monoInTwoPDic), len(otherInTwoPDic))
-    xlink2deltaDic = calPairedIonDeltaPPM(xlinkInTwoPDic)
-    mono2deltaDic = calPairedIonDeltaPPM(monoInTwoPDic)
-    other2deltaDic = calPairedIonDeltaPPM(otherInTwoPDic)
-    writeDeltaPPM(xlink2deltaDic, 'xlink2ppm.txt')
-    writeDeltaPPM(mono2deltaDic, 'mono2ppm.txt')
-    writeDeltaPPM(other2deltaDic, "other2ppm.txt")
-    xlinkInOnePdic, monoInOnePdic, otherInOnePdic = stacOnePairinfo(ms2TriggerMS3dic)
-    print(len(xlinkInOnePdic), len(monoInOnePdic), len(otherInOnePdic))
-    xlink1deltaDic = calPairedIonDeltaPPM(xlinkInOnePdic)
-    mono1deltaDic = calPairedIonDeltaPPM(monoInOnePdic)
-    other1deltaDic = calPairedIonDeltaPPM(otherInOnePdic)
-    writeDeltaPPM(xlink1deltaDic, "xlink1ppm.txt")
-    writeDeltaPPM(mono1deltaDic, "mono1ppm.txt")
-    writeDeltaPPM(other1deltaDic, "other1ppm.txt")
+    # numWrongCal = calunmatcheddelta(ms2TriggerMS3dic, "unmatchedScans.txt")
+    # ratioWrongCal = numWrongCal/numTotalMS3
+    # writeMs2ToMs3Info(ms2TriggerMS3dic, "paired_info.txt")
+    # numOFnondetect = pickupChargeZeroScan(ms2TriggerMS3dic, "charge_zero.txt")
+    # ratiowrongcharge = numOFnondetect/numTotalMS3
+    # print(ratioWrongCal, ratiowrongcharge)
+    # paireDELTADic = calPairedIonDeltaPPM(ms2TriggerMS3dic)
+    # zeroMed, otherMed = writeDeltaPPM(paireDELTADic, "deltappm.txt")
+    # #print(zeroMed, otherMed)
+    # writedeltaList(zeroMed, 'zeroMed.txt')
+    # writedeltaList(otherMed, 'otherMed.txt')
+    # print(stacMS2MS3(ms2TriggerMS3dic))
+    # xlinkInTwoPDic, monoInTwoPDic, otherInTwoPDic = stac2pairinfo(ms2TriggerMS3dic)
+    # print(len(xlinkInTwoPDic), len(monoInTwoPDic), len(otherInTwoPDic))
+    # xlink2deltaDic = calPairedIonDeltaPPM(xlinkInTwoPDic)
+    # mono2deltaDic = calPairedIonDeltaPPM(monoInTwoPDic)
+    # other2deltaDic = calPairedIonDeltaPPM(otherInTwoPDic)
+    # writeDeltaPPM(xlink2deltaDic, 'xlink2ppm.txt')
+    # writeDeltaPPM(mono2deltaDic, 'mono2ppm.txt')
+    # writeDeltaPPM(other2deltaDic, "other2ppm.txt")
+    # xlinkInOnePdic, monoInOnePdic, otherInOnePdic = stacOnePairinfo(ms2TriggerMS3dic)
+    # print(len(xlinkInOnePdic), len(monoInOnePdic), len(otherInOnePdic))
+    # xlink1deltaDic = calPairedIonDeltaPPM(xlinkInOnePdic)
+    # mono1deltaDic = calPairedIonDeltaPPM(monoInOnePdic)
+    # other1deltaDic = calPairedIonDeltaPPM(otherInOnePdic)
+    # writeDeltaPPM(xlink1deltaDic, "xlink1ppm.txt")
+    # writeDeltaPPM(mono1deltaDic, "mono1ppm.txt")
+    # writeDeltaPPM(other1deltaDic, "other1ppm.txt")
 
 
 if __name__ == "__main__":

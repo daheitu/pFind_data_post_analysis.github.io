@@ -13,6 +13,13 @@ Best_evalue_cutoff = 2 # 交联位点对层次最好的e-value cutoff
 E_value_cutoff_SpecLvl = 2 # 谱图层次的e-value cutoff
 
 
+def count_keyIndic(ele, ele_dic):
+    if ele not in ele_dic:
+        ele_dic[ele] = 1
+    else:
+        ele_dic[ele] += 1
+
+
 #根据交联位点信息和交联肽段信息判断inter还是intra
 def judgeHomoHetro(linked_site, pepXL):
     pos_list = re.findall("\((\d*)\)", linked_site)
@@ -46,7 +53,7 @@ def judgeHomoHetro(linked_site, pepXL):
 
 
 # 位点处理，将位点对里面的反库蛋白和污染蛋白的交联对剔除
-def site_list_process(site_list, pepXLlist):
+def site_list_process(site_list, pepXLlist=["WFC(2)-XSV(2)"]):
     i = 0
     while i < len(site_list):
         if "REVERSE" in site_list[i] or "gi|CON" in site_list[i]:
@@ -187,7 +194,7 @@ def splitResult(openedfl, raw_name_list, spec_cutoff, Best_evalue_cutoff, E_valu
             site_list = [line_list[1]]
             p = n + 1
         else:
-            print(n)
+            print("文件格式错误，line%d"%n)
 
         while p < len(f):
             line_list = f[p].rstrip("\n").split(",")
@@ -198,7 +205,7 @@ def splitResult(openedfl, raw_name_list, spec_cutoff, Best_evalue_cutoff, E_valu
                     site_list.append(line_list[1])
                 p += 1
 
-        site = site_list_process(site_list, ["WFC(2)-XSV(2)"])[0]
+        site = site_list_process(site_list)[0]
         if site == "":
             while p < len(f):
                 if f[p].rstrip("\n").split(",")[0].isdigit():

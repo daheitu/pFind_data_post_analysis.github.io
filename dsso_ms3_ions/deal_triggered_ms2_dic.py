@@ -13,19 +13,6 @@ mH2O = 18.0105
 mShort = 54.011
 len_dic = {}
 
-# for scan in ms2TriggerMS3dic:
-#     # if ms2TriggerMS3dic[scan]:
-#     # print(len(ms2TriggerMS3dic[scan]))
-#     len_scan_list = len(ms2TriggerMS3dic[scan])
-#     if len_scan_list not in len_dic:
-#         len_dic[len_scan_list] = 1
-#     else:
-#         len_dic[len_scan_list] += 1
-
-# print(len_dic)
-
-# 根据一个ms3母离子的质量和ms2母离子质量判断是否为mono
-# def isMono(ms2_info, ms3_ion_info):
 
 # 判断两个离子是否成对
 def isPaired(a_list, b_list, tolppm=30):
@@ -71,13 +58,13 @@ def remove_large_in_pair(all_ms3):
                 break
         if not ismatch:
             non_re_info.append(all_ms3.pop(i))
-            # del all_ms3[i]
 
     if all_ms3 != []:
         non_re_info.append(all_ms3[-1])
     return non_re_info
 
 
+# 判断是否为alpha，beta的短的形式
 def isSSFeatureIon(paired_ms3, ms3, ms2):
     mz1, z1 = paired_ms3[:2]
     mz2, z2 = ms3[:2]
@@ -85,19 +72,17 @@ def isSSFeatureIon(paired_ms3, ms3, ms2):
     if z2 != 0:
         mzpre_from_ms3 = ((mz1- mH)*z1 + (mz2-mH)*z2 + mS + mH2O + mH * zpre)/zpre
         ismatch, delta = compareTwoNum(mpre, mzpre_from_ms3, 20)
+        return ismatch, delta
     else:
         for z in range(1, zpre):
             mzpre_from_ms3 = ((mz1- mH)*z1 + (mz2-mH)*z2 + mS + mH2O + mH * zpre)/zpre
             ismatch, delta = compareTwoNum(mpre, mzpre_from_ms3, 20)
             if ismatch:
-                break
-    # print(ismatch, delta)
-    if ismatch:
-        return True
-    else:
-        return False
+                return ismatch, delta
+    
+    return False, 50
 
-
+# 判断是否为alpha短，beta长的形式
 def isSLFeatureIon(paired_ms3, ms3, ms2):
     mz1, z1 = paired_ms3[:2]
     mz2, z2 = ms3[:2]
@@ -105,19 +90,17 @@ def isSLFeatureIon(paired_ms3, ms3, ms2):
     if z2 != 0:
         mzpre_from_ms3 = ((mz1- mH)*z1 + (mz2-mH)*z2 + mH2O + mH * zpre)/zpre
         ismatch, delta = compareTwoNum(mpre, mzpre_from_ms3, 20)
+        return ismatch, delta
     else:
         for z in range(1, zpre):
             mzpre_from_ms3 = ((mz1- mH)*z1 + (mz2-mH)*z + mH2O + mH * zpre)/zpre
             ismatch, delta = compareTwoNum(mpre, mzpre_from_ms3, 20)
             if ismatch:
-                break
-    # print(ismatch, delta)
-    if ismatch:
-        return True
-    else:
-        return False
+                return ismatch, delta
+        return False, 50
+    
 
-
+# 判断是否含有成对的信息
 def isContainPair(non_re_info):
     paired_ms3 = [x for x in non_re_info if len(x) == 4]
     if len(paired_ms3) > 0:
@@ -126,118 +109,126 @@ def isContainPair(non_re_info):
         return False, None
 
 
+# 判断所有ms3里是否有和确定的为alpha，beta特征离子
 def judge_alpha_beta(all_ms3, paired_ms3, ms2):
     for ms3 in all_ms3:
         if ms3 != paired_ms3:
-            isSS = isSSFeatureIon(paired_ms3, ms3, ms2)
+            isSS, delta_ss = isSSFeatureIon(paired_ms3, ms3, ms2)
             if isSS:
-                return True, "isSS", [paired_ms3, ms3]
+                return True, "isSS", [paired_ms3, ms3], delta_ss
             else:
-                isSL = isSLFeatureIon(paired_ms3, ms3, ms2)
+                isSL, delta_sl = isSLFeatureIon(paired_ms3, ms3, ms2)
                 if isSL:
-                    return True, "isSL", [paired_ms3, ms3]
-    return False, None, None
+                    return True, "isSL", [paired_ms3, ms3], delta_sl
+    return False, None, None, 50
 
 
+# 判断是否为短的mono形式
 def isSMono_Feature(ms3, ms2):
     mz1, z1 = ms3[:2]
     mpre, zpre = ms2[1:3]
     if z1 != 0:
         mzpre_from_ms3 = ((mz1-mH) * z1 + mS + mH2O*2 + mShort+ mH * zpre)/zpre
         ismatch, delta = compareTwoNum(mpre, mzpre_from_ms3, 20)
+        return ismatch, delta
     else:
         for z in range(1, zpre):
             mzpre_from_ms3 = ((mz1-mH) * z + mS + mH2O*2 + mShort+ mH * zpre)/zpre
             ismatch, delta = compareTwoNum(mpre, mzpre_from_ms3, 20)
             if ismatch:
-                break
-    # print(ismatch, delta)
-    if ismatch:
-        return True
-    else:
-        return False
+                return ismatch, delta
+        return False, 50
 
-
+#判断是否为长的mono形式
 def isLMono_Feature(ms3, ms2):
     mz1, z1 = ms3[:2]
     mpre, zpre = ms2[1:3]
     if z1 != 0:
         mzpre_from_ms3 = ((mz1-mH) * z1 + mH2O*2 + mShort+ mH * zpre)/zpre
         ismatch, delta = compareTwoNum(mpre, mzpre_from_ms3, 20)
+        return ismatch, delta
     else:
         for z in range(1, zpre):
             mzpre_from_ms3 = ((mz1-mH) * z + mH2O*2 + mShort+ mH * zpre)/zpre
             ismatch, delta = compareTwoNum(mpre, mzpre_from_ms3, 20)
             if ismatch:
-                break
-    # print(ismatch, delta)
-    if ismatch:
-        return True
-    else:
-        return False
+                return ismatch, delta
+        return False, 50
 
 
+# 判断是否含有mono
 def judge_mono(non_re_info, ms2):
     if non_re_info == []:
-        return False, None
+        return False, None, None, 50
     else:
         for ms3 in non_re_info:
-            isSM = isSMono_Feature(ms3, ms2)
+            isSM, delta_sm = isSMono_Feature(ms3, ms2)
             if isSM:
-                return True, 'isSM'
+                return True, 'isSM', ms3, delta_sm
             else:
-                isLM = isLMono_Feature(ms3, ms2)
+                isLM, delta_lm = isLMono_Feature(ms3, ms2)
                 if isLM:
-                    return True, 'isLM'
+                    return True, 'isLM', ms3, delta_lm
+
+        return False, None, None, 50
+
+
+def main():
+    xl = open("xlink.txttest", 'w')
+    mn = open("mono.txttest", 'w')
+    both_ms2_num = 0
+    mono_num = 0
+    for scan in ms2TriggerMS3dic:
+        ms2_info = ms2TriggerMS3dic[scan]
+        ms2 = ms2_info[0]
+        all_ms3 = ms2_info[1:]
+        print(ms2)
+        print(all_ms3)
+        non_re_info = remove_large_in_pair(all_ms3)
+        print(non_re_info)
+        contain_pair, paired_ms3 = isContainPair(non_re_info)
+        if contain_pair:
+            if len(non_re_info) >= 2:
+                isAlBe, isType, alpha_beta, delta_xl = judge_alpha_beta(non_re_info, paired_ms3, ms2)
+                if isAlBe:
+                    print(scan)
+                    print(isType)
+                    print(alpha_beta, ms2)
+                    wlist = [ms2, isType, delta_xl]
+                    wlist.extend(alpha_beta)
+                    xl.write("\t".join([str(x) for x in wlist])+"\n")
+                    both_ms2_num += 1
+                    non_re_left = [x for x in non_re_info if x not in alpha_beta]
+                    isMono, mType, matched_ms3, delta_mn = judge_mono(non_re_left, ms2)
+                    if isMono:
+                        print(mType)
+                        wlist = [ms2, matched_ms3, mType, delta_mn]
+                        mn.write("\t".join([str(x) for x in wlist])+"\n")
+                        mono_num += 1
                 else:
-                    return False, None
-
-
-
-# print(judge_alpha_beta([(522.7877, 2, 6023), (436.253, 2, 6025)], (522.7877, 2, 6023), (6018, 655.68683, 3, 1965.04593)))
-# print(remove_large_in_pair([(1524.7208, 3, 23394), (1535.3754, 3, 23395), (1535.0325, 3, 23396)]))
-
-# '''
-both_ms2_num = 0
-mono_num = 0
-for scan in ms2TriggerMS3dic:
-    # if scan == 6018:
-    ms2_info = ms2TriggerMS3dic[scan]
-    ms2 = ms2_info[0]
-    all_ms3 = ms2_info[1:]
-    non_re_info = remove_large_in_pair(all_ms3)
-    # print(non_re_info)
-    contain_pair, paired_ms3 = isContainPair(non_re_info)
-    if contain_pair:
-        if len(non_re_info) >= 2:
-            # print(scan)
-            isAlBe, isType, alpha_beta = judge_alpha_beta(non_re_info, paired_ms3, ms2)
-            # print(isAlBe, isType, alpha_beta)
-            if isAlBe:
-                print(scan)
-                print(isType)
-                print(alpha_beta, ms2)
-                both_ms2_num += 1
-                non_re_left = [x for x in non_re_info if x not in alpha_beta]
-                isMono, mType = judge_mono(non_re_left, ms2)
-                if isMono:
-                    print(mType)
-                    mono_num += 1
+                    isMono, mType, matched_ms3, delta_mn = judge_mono(non_re_info, ms2)
+                    if isMono:
+                        print(scan)
+                        print(mType)
+                        wlist = [ms2, matched_ms3, mType, delta_mn]
+                        mn.write("\t".join([str(x) for x in wlist])+"\n")
+                        mono_num += 1
             else:
-                isMono, mType = judge_mono(non_re_info, ms2)
+                isMono, mType, matched_ms3, delta_mn = judge_mono(non_re_info, ms2)
                 if isMono:
                     print(scan)
                     print(mType)
+                    wlist = [ms2, matched_ms3, mType, delta_mn]
+                    mn.write("\t".join([str(x) for x in wlist])+"\n")
                     mono_num += 1
-        else:
-            isMono, mType = judge_mono(non_re_info, ms2)
-            if isMono:
-                print(scan)
-                print(mType)
-                mono_num += 1
+    xl.close()
+    mn.close()
+    print(both_ms2_num, mono_num)
+    print(both_ms2_num/len(ms2TriggerMS3dic))
+    print(mono_num/len(ms2TriggerMS3dic))
 
-print(both_ms2_num, mono_num)
-print(both_ms2_num/len(ms2TriggerMS3dic))
-print(mono_num/len(ms2TriggerMS3dic))
+
+if __name__ == "__main__":
+    main()
 
 

@@ -1,0 +1,54 @@
+#Dear user, the annotation for each parameter is after the semicolon. VIP: Very Important Parameter; Default settings are recommend for other parameters.
+
+[INI]
+PATH_INI_ELEMENT=E:\pFindStudio\pLink2.3.7_better_DSSO\2.3.7\bin\element.ini;
+PATH_INI_MODIFICATION=E:\pFindStudio\pLink2.3.7_better_DSSO\2.3.7\bin\modification.ini;
+PATH_INI_RESIDUE=E:\pFindStudio\pLink2.3.7_better_DSSO\2.3.7\bin\aa.ini;
+PATH_INI_GLYCO=E:\pFindStudio\pLink2.3.7_better_DSSO\2.3.7\bin\glyco.ini;
+PATH_INI_LINKER=E:\pFindStudio\pLink2.3.7_better_DSSO\2.3.7\bin\xlink.ini;
+
+[Performance]
+PATH_BIN=;
+NUMBER_MAX_PSM_PER_BLOCK=30000;
+TYPE_START=0;
+
+[MS1]
+PATH_MS1=G:\msData\20191120\Lysozyme\Lysozyme_DSSO_20191120_preID_R2.pf1|; 
+EXTENSION_TEXT_MS1=pf1;
+
+[MS2]
+PATH_MS2=;VIP
+EXTENSION_TEXT_MS2=ms2;VIP, case sensitive.
+
+[Identification]
+PATH_IDENTIFICATION_FILE=C:\Users\Yong Cao\Documents\pLink\\pLink_task_2019.11.22.17.03.03_Lysozyme_DSSO_preID_R2\reports\lysozyme_2019.11.23.filtered_regular_spectra.csv|C:\Users\Yong Cao\Documents\pLink\\pLink_task_2019.11.22.17.03.03_Lysozyme_DSSO_preID_R2\reports\lysozyme_2019.11.23.filtered_cross-linked_spectra.csv|C:\Users\Yong Cao\Documents\pLink\\pLink_task_2019.11.22.17.03.03_Lysozyme_DSSO_preID_R2\reports\lysozyme_2019.11.23.filtered_loop-linked_spectra.csv|C:\Users\Yong Cao\Documents\pLink\\pLink_task_2019.11.22.17.03.03_Lysozyme_DSSO_preID_R2\reports\lysozyme_2019.11.23.filtered_mono-linked_spectra.csv|;
+TYPE_IDENTIFICATION_FILE=5;
+THRESHOLD_FDR=0.05;
+
+[Quantitation]
+TYPE_LABEL=0;Labeling: TYPE_LABEL=0;  LabelFree: TYPE_LABEL=1;
+LL_INFO_LABEL=1|none|;
+LL_ELEMENT_ENRICHMENT_CALIBRATION=none;
+LL_FLAG_RATIO_CALIBRATION_18O=0;
+LF_INFO_SAMPLE=;
+
+[Evidence]
+NUMBER_SCANS_HALF_CMTG=200;
+PPM_FOR_CALIBRATION=0.0;
+PPM_HALF_WIN_ACCURACY_PEAK=15.0;
+NUMBER_HOLE_IN_CMTG=2;
+TYPE_SAME_START_END_BETWEEN_EVIDENCE=0;
+DALTON_ISOLATION_WIDTH=1.6;
+
+[Inference]
+TYPE_PEPTIDE_RATIO=0;
+TYPE_PROTEIN_RATIO_CALCULATION=0;
+TYPE_UNIQUE_PEPTIDE_ONLY=0;
+THRESHOLD_SCORE_INTERFERENCE=1.0;
+THRESHOLD_SCORE_INTENSITY=10000.0;
+TYPE_GET_GROUP=1;
+PATH_FASTA=;
+
+[Export]
+DIR_EXPORT=C:\Users\Yong Cao\Documents\pLink\\pLink_task_2019.11.22.17.03.03_Lysozyme_DSSO_preID_R2\pQuant;
+FLAG_CREATE_NEW_FOLDER=0;

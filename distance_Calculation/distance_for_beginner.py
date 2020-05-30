@@ -239,7 +239,7 @@ def get_fasta_pdb_info(fasta, pdb):
     return chain2protName_dic, pos_delta_pdb2fasta
 
 
-def find_chain_pos(protein, position, chain2protName_dic, pos_delta_pdb2fasta, strc_info_dic):
+def find_chain_pos(protein, position, chain2protName_dic, pos_delta_pdb2fasta, strc_info_dic, XL_sites_list):
     prot = protein
     pos = position
     site_list = []
@@ -294,8 +294,11 @@ def get_pdb_distance(cross_link_pair, chain2protName_dic,
     return wlist
 
 
-def main():
+def cal_dis_in_pdb(linksiteFile, pdb_path, fasta_path):
     f = open(linksiteFile, 'r').readlines()
+    fasta = open(fasta_path, 'r').readlines()
+    pdb = open(pdb_path, 'r').readlines()
+
     pair_list = []
     for line in f[1:]:   #important
         line_list = line.rstrip("\n").split(",")
@@ -306,18 +309,18 @@ def main():
             pair_list.append(line_list[0])
     
     B = open("xlink_distance.txt", 'w')
-    file_list = os.listdir(os.getcwd())
-    for fl in file_list:
-        if fl[-6:] == ".fasta":
-            fasta = open(fl, 'r').readlines()
-            print("The fasta file is " + fl)
-        elif fl[-4:] == ".pdb":
-            pdb_name = fl[:-4]
-            pdb = open(fl, 'r').readlines()
-            print("The pdb file is " + pdb_name)
-        else:
-            continue
-
+    # file_list = os.listdir(os.getcwd())
+    # for fl in file_list:
+    #     if fl[-6:] == ".fasta":
+    #         fasta = open(fl, 'r').readlines()
+    #         print("The fasta file is " + fl)
+    #     elif fl[-4:] == ".pdb":
+    #         pdb_name = fl[:-4]
+    #         pdb = open(fl, 'r').readlines()
+    #         print("The pdb file is " + pdb_name)
+    #     else:
+    #         continue
+    pdb_name = os.path.basename(pdb_path)[:-4]
     chain2protName_dic, pos_delta_pdb2fasta = get_fasta_pdb_info(fasta, pdb)
     strc_info_dic = pretreatment_pdb(pdb)
     print(chain2protName_dic)

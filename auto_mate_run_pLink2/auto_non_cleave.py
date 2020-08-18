@@ -4,16 +4,24 @@
 # coding = utf-8
 
 import os, time
+from automate_pLink2 import is_searched
 
-raw_p = r"G:\msData\20200419\BSA"
-plink_bin_path = r"E:\pFindStudio\pLink\2.3.9_20200327\bin"
+
+raw_p = r"F:\MS_DATA_STORAGE\pku_RH\DSS"
+plink_bin_path = r"E:\pFindStudio\pLink2.3.9_0415\bin"
 # plink_para_demo = r"E:\pFindStudio\pLink_test_20200330\pLink_test_20200330\2.pLink2_plus_score_massfilter\2.pLink2_plus_score_massfilter.plink"
-# db_name = "Lactoferrin_con" # "CNGP_con" # "GST_sequence_con" # "BSA_with_resoure"
+# db_name = "synthetic_pep_con" #"Lactoferrin_con" # "CNGP_con" # "GST_sequence_con" # "BSA_with_resoure"
 
-db_name_dic = {"BSA":"bsa_con", 
-                "CNGP": "CNGP_con",
-                "GST": "GST_sequence_con",
-                "Lacto": "Lactoferrin_con"}
+db_name_dic = {
+    "hGBP":"lipeng_con",
+    "Lysozyme":"lysozyme_con",
+    "PUD12":"PUD12_con",
+    "UTPA":"UTPA_sub complex_con"
+}
+#                 "BSA":"bsa_con", 
+#                 "CNGP": "CNGP_con",
+#                 "GST": "GST_sequence_con",
+#                 "Lacto": "Lactoferrin_con"}
 
 
 def makedir(rootpath, dir_name):
@@ -96,8 +104,16 @@ def main_flow(raw_path, linker, db_name):
 
 
 if __name__ == "__main__":
-    for root, dirs, fls in os.walk(raw_p):
-        db_name, linker = root.split("\\")[-2:]
-        if db_name != "Lacto" and linker in ["DSS", "BSMEG"]:
-            print(root)
-            main_flow(root, linker, db_name_dic[db_name])
+    main_flow(raw_p, "DSS", "X.laevis_NPL_200")
+    # for root, dirs, fls in os.walk(raw_p):
+    #     linker = root.split("\\")[-1]
+    #     if linker in ["DSS", "BSMEG"]:
+    #         pro_name = root.split("\\")[-2]
+    #         raw_path = root
+    #         # linker = "DSS"
+    #         if not is_searched(raw_path):
+    #             print(root)
+    #             db_name = db_name_dic[pro_name]
+    #             main_flow(raw_path, linker, db_name)
+    #             print("sleep time: 10 mins")
+    #             time.sleep(120)

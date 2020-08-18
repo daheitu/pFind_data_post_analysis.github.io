@@ -2,10 +2,17 @@
 
 from readMS3info import *
 
-ms3InfoDic = readms3Info("./DSSO_CID_MS2_CID_MS3_T1.ms3")
-numTotalMS3 = len(ms3InfoDic)
-ms2TriggerMS3dic = getLinageInfo(ms3InfoDic)
-totalms2, ms2TriggerMS3dic = readms2Info("./DSSO_CID_MS2_CID_MS3_T1.ms2", ms2TriggerMS3dic)
+wk_dir = r"F:\data_from_paper\maxlinker_MCP\JinLiang10366422"
+os.chdir(wk_dir)
+
+# for fl in os.listdir(wk_dir):
+#     if fl.endswith(".ms2"):
+#         ms2_fl = fl
+#     if fl.endswith(".ms3"):
+#         ms3_fl = fl
+
+
+
 # writeMs2ToMs3Info(ms2TriggerMS3dic, "ms2_ms3_linage.txt")
 mH = 1.00782
 mS = 31.9720
@@ -173,38 +180,56 @@ def judge_mono(non_re_info, ms2):
         return False, None, None, 50
 
 
-def main():
-    xl = open("xlink.txttest", 'w')
-    mn = open("mono.txttest", 'w')
-    both_ms2_num = 0
-    mono_num = 0
-    for scan in ms2TriggerMS3dic:
-        ms2_info = ms2TriggerMS3dic[scan]
-        ms2 = ms2_info[0]
-        all_ms3 = ms2_info[1:]
-        print(ms2)
-        print(all_ms3)
-        non_re_info = remove_large_in_pair(all_ms3)
-        print(non_re_info)
-        contain_pair, paired_ms3 = isContainPair(non_re_info)
-        if contain_pair:
-            if len(non_re_info) >= 2:
-                isAlBe, isType, alpha_beta, delta_xl = judge_alpha_beta(non_re_info, paired_ms3, ms2)
-                if isAlBe:
-                    print(scan)
-                    print(isType)
-                    print(alpha_beta, ms2)
-                    wlist = [ms2, isType, delta_xl]
-                    wlist.extend(alpha_beta)
-                    xl.write("\t".join([str(x) for x in wlist])+"\n")
-                    both_ms2_num += 1
-                    non_re_left = [x for x in non_re_info if x not in alpha_beta]
-                    isMono, mType, matched_ms3, delta_mn = judge_mono(non_re_left, ms2)
-                    if isMono:
-                        print(mType)
-                        wlist = [ms2, matched_ms3, mType, delta_mn]
-                        mn.write("\t".join([str(x) for x in wlist])+"\n")
-                        mono_num += 1
+def main_flow(raw_name):
+    ms2_fl = raw_name[:-4] + ".ms2"
+    ms3_fl = raw_name[:-4] + ".ms3"
+    if not os.path.exists(os.path.join(os.getcwd(), ms2_fl)) or \
+        not os.path.exists(os.path.join(os.getcwd(), ms3_fl)):
+        print("Check your files")
+    else:
+        ms3InfoDic = readms3Info(ms3_fl)
+        numTotalMS3 = len(ms3InfoDic)
+        ms2TriggerMS3dic = getLinageInfo(ms3InfoDic)
+        totalms2, ms2TriggerMS3dic = readms2Info(ms2_fl, ms2TriggerMS3dic)
+        xl = open(raw_name[:-4] + "_xlink.txt", 'w')
+        mn = open(raw_name[:-4] + "_mono.txt", 'w')
+        both_ms2_num = 0
+        mono_num = 0
+        for scan in ms2TriggerMS3dic:
+            ms2_info = ms2TriggerMS3dic[scan]
+            ms2 = ms2_info[0]
+            all_ms3 = ms2_info[1:]
+            print(ms2)
+            print(all_ms3)
+            non_re_info = remove_large_in_pair(all_ms3)
+            print(non_re_info)
+            contain_pair, paired_ms3 = isContainPair(non_re_info)
+            if contain_pair:
+                if len(non_re_info) >= 2:
+                    isAlBe, isType, alpha_beta, delta_xl = judge_alpha_beta(non_re_info, paired_ms3, ms2)
+                    if isAlBe:
+                        print(scan)
+                        print(isType)
+                        print(alpha_beta, ms2)
+                        wlist = [ms2, isType, delta_xl]
+                        wlist.extend(alpha_beta)
+                        xl.write("\t".join([str(x) for x in wlist])+"\n")
+                        both_ms2_num += 1
+                        non_re_left = [x for x in non_re_info if x not in alpha_beta]
+                        isMono, mType, matched_ms3, delta_mn = judge_mono(non_re_left, ms2)
+                        if isMono:
+                            print(mType)
+                            wlist = [ms2, matched_ms3, mType, delta_mn]
+                            mn.write("\t".join([str(x) for x in wlist])+"\n")
+                            mono_num += 1
+                    else:
+                        isMono, mType, matched_ms3, delta_mn = judge_mono(non_re_info, ms2)
+                        if isMono:
+                            print(scan)
+                            print(mType)
+                            wlist = [ms2, matched_ms3, mType, delta_mn]
+                            mn.write("\t".join([str(x) for x in wlist])+"\n")
+                            mono_num += 1
                 else:
                     isMono, mType, matched_ms3, delta_mn = judge_mono(non_re_info, ms2)
                     if isMono:
@@ -213,22 +238,19 @@ def main():
                         wlist = [ms2, matched_ms3, mType, delta_mn]
                         mn.write("\t".join([str(x) for x in wlist])+"\n")
                         mono_num += 1
-            else:
-                isMono, mType, matched_ms3, delta_mn = judge_mono(non_re_info, ms2)
-                if isMono:
-                    print(scan)
-                    print(mType)
-                    wlist = [ms2, matched_ms3, mType, delta_mn]
-                    mn.write("\t".join([str(x) for x in wlist])+"\n")
-                    mono_num += 1
-    xl.close()
-    mn.close()
-    print(both_ms2_num, mono_num)
-    print(both_ms2_num/len(ms2TriggerMS3dic))
-    print(mono_num/len(ms2TriggerMS3dic))
-
+        xl.close()
+        mn.close()
+        print(both_ms2_num, mono_num)
+        print(both_ms2_num/len(ms2TriggerMS3dic))
+        print(mono_num/len(ms2TriggerMS3dic))
+        return both_ms2_num, mono_num, both_ms2_num/len(ms2TriggerMS3dic), mono_num/len(ms2TriggerMS3dic)
 
 if __name__ == "__main__":
-    main()
+    b = open('report.csv', 'w')
+    for fl in os.listdir(wk_dir):
+        if fl.endswith(".raw"):
+            both_ms2_num, mono_num, xlink_ratio, mono_ratio = main_flow(fl)
+            b.write("%s,%d, %d, %f,%f\n" % (fl, both_ms2_num, mono_num, xlink_ratio, mono_ratio))
+    b.close()
 
 

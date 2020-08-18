@@ -108,4 +108,3 @@ def calsyntheticNumforFix(fileName, p1F):
     print("The spec of interCrossmid is %d" % sum(interCrossmid_spec))
     print("The spec of interCrossNter is %d" % sum(interCrossNter_spec))
     print("The spec of intraCrossmid is %d" % sum(intraCrossmid_spec))
-    print("The spec of intraCrossNter is %d" % sum(intraCrossNter_spec))

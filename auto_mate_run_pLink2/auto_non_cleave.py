@@ -7,7 +7,7 @@ import os, time
 from automate_pLink2 import is_searched
 
 
-raw_p = r"F:\MS_DATA_STORAGE\pku_RH\DSS"
+raw_p = r"K:\20200801"
 plink_bin_path = r"E:\pFindStudio\pLink2.3.9_0415\bin"
 # plink_para_demo = r"E:\pFindStudio\pLink_test_20200330\pLink_test_20200330\2.pLink2_plus_score_massfilter\2.pLink2_plus_score_massfilter.plink"
 # db_name = "synthetic_pep_con" #"Lactoferrin_con" # "CNGP_con" # "GST_sequence_con" # "BSA_with_resoure"
@@ -16,12 +16,16 @@ db_name_dic = {
     "hGBP":"lipeng_con",
     "Lysozyme":"lysozyme_con",
     "PUD12":"PUD12_con",
-    "UTPA":"UTPA_sub complex_con"
-}
-#                 "BSA":"bsa_con", 
-#                 "CNGP": "CNGP_con",
-#                 "GST": "GST_sequence_con",
-#                 "Lacto": "Lactoferrin_con"}
+    "UTPA":"UTPA_sub complex_con",
+    "UtpA":"UTPA_sub complex_con",
+
+# }
+    "BSA":"bsa_con", 
+    "CNGP": "CNGP_con",
+    "GST": "GST_sequence_con",
+    "lacto": "Lactoferrin_con",
+    "p450": "p450_con"
+    }
 
 
 def makedir(rootpath, dir_name):
@@ -64,7 +68,7 @@ def count_pf2_file(raw_path):
 
 def run_searcher(linker, raw_path, db_name):
     f = open("./demo_DSS.plink").readlines()
-    output_name = "output"
+    output_name = "%s_output" % db_name
     makedir(raw_path, output_name)
     plink_para_name = "plink2.plink" 
     plink_path = os.path.join(raw_path, output_name, plink_para_name)
@@ -103,17 +107,31 @@ def main_flow(raw_path, linker, db_name):
     run_searcher(linker, raw_path, db_name)
 
 
+def isContain_raw(path):
+    for fl in os.listdir(path):
+        if fl.endswith(".raw"):
+            return True
+    return False
+
+
 if __name__ == "__main__":
-    main_flow(raw_p, "DSS", "X.laevis_NPL_200")
-    # for root, dirs, fls in os.walk(raw_p):
-    #     linker = root.split("\\")[-1]
-    #     if linker in ["DSS", "BSMEG"]:
-    #         pro_name = root.split("\\")[-2]
-    #         raw_path = root
-    #         # linker = "DSS"
-    #         if not is_searched(raw_path):
-    #             print(root)
-    #             db_name = db_name_dic[pro_name]
-    #             main_flow(raw_path, linker, db_name)
-    #             print("sleep time: 10 mins")
-    #             time.sleep(120)
+    db_name = "small_mg1655_intra"
+    # db_name = "LuS_NP"
+    # linker = "BS3"
+    # for root, dirs, fls in os.walk(raw_p, topdown= False):
+    #     if isContain_raw(root):
+    #         main_flow(root, linker, db_name)
+    # main_flow(raw_p, "DSS_C", db_name)
+    for root, dirs, fls in os.walk(raw_p):
+        linker = root.split("\\")[-1]
+        if linker in ["DSS", "BSMEG", "DSS_C"]:
+            print(root)
+            # pro_name = root.split("\\")[-2]
+            raw_path = root
+            # linker = "DSS"
+            # if not is_searched(raw_path):
+            #     print(root)
+                # db_name = db_name_dic[pro_name]
+            main_flow(raw_path, linker, db_name)
+            print("sleep time: 5 mins")
+            time.sleep(120)

@@ -2,7 +2,7 @@
 
 import os
 
-wkdir = r"G:\msData\20200419\CNGP"
+wkdir = r"G:\msData\20200425\Lysozyme"
 
 
 def get_link_sites(rpfl_path):
@@ -34,7 +34,7 @@ for root, dirs, fls in os.walk(wkdir):
                     rep_dic[linker] =get_link_sites(rep_path)
 
 
-b = open(wkdir.split("\\")[-1]+"summary.csv", 'w')
+b = open(wkdir.split("\\")[-1]+"_summary.csv", 'w')
 print(rep_dic)
 row = len(rep_dic["DSS"])
 for i in range(row):

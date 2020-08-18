@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="dd81fbe9-f488-44db-ae6e-2d02af3c003b" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/../readingNote/回复贺老师20200527.MD" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FTP/ftp3.py" beforeDir="false" afterPath="$PROJECT_DIR$/../FTP/ftp3.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../auto_mate_run_pLink2/auto_non_cleave.py" beforeDir="false" afterPath="$PROJECT_DIR$/../auto_mate_run_pLink2/auto_non_cleave.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../auto_mate_run_pLink2/automate_pLink2.py" beforeDir="false" afterPath="$PROJECT_DIR$/../auto_mate_run_pLink2/automate_pLink2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../auto_mate_run_pLink2/pquant.py" beforeDir="false" afterPath="$PROJECT_DIR$/../auto_mate_run_pLink2/pquant.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../dsso_ms3_ions/deal_triggered_ms2_dic.py" beforeDir="false" afterPath="$PROJECT_DIR$/../dsso_ms3_ions/deal_triggered_ms2_dic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../dsso_ms3_ions/readMS3info.py" beforeDir="false" afterPath="$PROJECT_DIR$/../dsso_ms3_ions/readMS3info.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../filter_good_xlpeps-v2/.vscode/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/../filter_good_xlpeps-v2/.vscode/settings.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../filter_good_xlpeps-v2/filter-v3.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mgf_tools/deleteEXTmsfile.py" beforeDir="false" afterPath="$PROJECT_DIR$/../mgf_tools/deleteEXTmsfile.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/calSynthiticNum.py" beforeDir="false" afterPath="$PROJECT_DIR$/calSynthiticNum.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/merge_3linker.py" beforeDir="false" afterPath="$PROJECT_DIR$/merge_3linker.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/more_raw_plink2_rep.py" beforeDir="false" afterPath="$PROJECT_DIR$/more_raw_plink2_rep.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/plink2_report_v5.py" beforeDir="false" afterPath="$PROJECT_DIR$/plink2_report_v5.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="JupyterTrust" id="73009188-77f2-4f9a-a5ca-349522a14231" />
+  <component name="ProjectId" id="1cwqfGIBkqTWiQXTGbVdBG5P1XP" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../DSS_XLink_pep_analysis" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="dd81fbe9-f488-44db-ae6e-2d02af3c003b" name="Default Changelist" comment="" />
+      <created>1591450104076</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1591450104076</updated>
+      <workItem from="1591450107844" duration="27000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="2" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="740" y="274" key="FileChooserDialogImpl" timestamp="1591450124708">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="740" y="274" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1591450124708" />
+  </component>
+</project>

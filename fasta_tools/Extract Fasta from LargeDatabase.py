@@ -9,8 +9,8 @@ python Extract Fasta from LargeDatabase.py
 """
 
 import os
-FastaFile = "human_unitprot_contaminant.fasta"
-new_fasta = "Atg16.fasta"
+FastaFile = "Ecoli-uniprot-mg1655-20160918_con.fasta"
+new_fasta = "mg1655_small.fasta"
 
 
 def Get_ProList_from_pBuildFile(filename):
@@ -67,7 +67,7 @@ def Extract_protein(FastaName, tgt_list):
 
 
 def main():
-    os.chdir(r"C:\Users\Yong\Desktop\lumos")
+    os.chdir(r"E:\workspace\pFindTask86\result\pBuild_tmp")
     FileName_list = os.listdir(os.getcwd())
     Total_Pro = []
     Total_Pro_simp = []

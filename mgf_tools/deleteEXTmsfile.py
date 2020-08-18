@@ -1,6 +1,6 @@
 import os
 
-path = r"J:\ar11_nr11"
+path = r"F:\disulfide_Lumos"
 
 for root, dirs, files in os.walk(path):
     for file in files:

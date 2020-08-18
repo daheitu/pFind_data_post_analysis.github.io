@@ -3,7 +3,7 @@
 import os, time
 # from pquant import gene_run_pquant
 
-raw_p = r"F:\MS_DATA_STORAGE\SCX_ECOLI"
+raw_p = r"K:\20200801\DSSO"
 plink_bin_path = r"E:\pFindStudio\pLink2.3.9_0415\bin"
 # plink_para_demo = r"E:\pFindStudio\pLink_test_20200330\pLink_test_20200330\2.pLink2_plus_score_massfilter\2.pLink2_plus_score_massfilter.plink"
 spec_type = "pf"
@@ -25,9 +25,9 @@ pname_fasta_dic = {
 type_name_dic = {0:"_score", 1:"_mass_filter", 2:"_plink_dsso"}
 
 type_para_dic = {
-                0:('0', "FT_ION_INDEX"),
-                # 1:('1', "FT_ION_INDEX"),
-                2:('1', 'FT_SteppedCleavage_PEP_INDEX')
+                0: ('0', "FT_ION_INDEX"),
+                # 1: ('1', "FT_ION_INDEX"),
+                2: ('1', 'FT_SteppedCleavage_PEP_INDEX')
                 }
 
 
@@ -74,7 +74,7 @@ def count_pf2_file(raw_path, spec_type):
 
 def run_searcher(flow_type, linker, raw_path, db_name):
     f = open("./2.pLink2_plus_score_massfilter.plink").readlines()
-    output_name = "output%s" % (type_name_dic[flow_type])
+    output_name = "%s_output%s" % (db_name, type_name_dic[flow_type])
     makedir(raw_path, output_name)
     plink_para_name = "plink2%s.plink" % (type_name_dic[flow_type])
     plink_path = os.path.join(raw_path, output_name, plink_para_name)
@@ -148,7 +148,7 @@ def del_dirs_path(path):
 if __name__ == "__main__":
     raw_path = raw_p
     linker = "DSSO"
-    db_name = "UniProt-Swissprot_E-Coli-K12_reference_proteome_2014-07-31_dtan"
+    db_name = "small_mg1655_intra"
     main_flow(raw_path, linker, db_name)
     # for root, dirs, fls in os.walk(raw_p):
     #     if root.split("\\")[-1].upper() == "DATA":

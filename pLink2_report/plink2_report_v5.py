@@ -6,9 +6,9 @@ This script can help you to summary the plink2 report file
 import os
 import re
 
-reports_path = r"G:\msData\20200419\BSA\DSS\output\reports"
+reports_path = r"C:\Users\Yong Cao\Documents\pLink\Lushan_np_bs3_d4\reports"
 
-spec_cutoff = 3  # spectra number cut-off
+spec_cutoff = 2  # spectra number cut-off
 Best_evalue_cutoff = 2 # 交联位点对层次最好的e-value cutoff
 E_value_cutoff_SpecLvl = 2 # 谱图层次的e-value cutoff
 
@@ -143,6 +143,15 @@ def cal_numRange(openedfl, k_column):
     return "{0:.1e}~{1:.1e}".format(valList[0], valList[-1])
 
 
+def count_peptides(f):
+    num_pep = 0
+    for line in f[1:]:
+        peps = line.split(",")[4]
+        num_pep += peps.count(";") + 1
+    return num_pep
+
+
+
 def statistic_report_file():
     report_file_name = get_report_file_name()
     c = open(report_file_name, 'a')
@@ -158,7 +167,7 @@ def statistic_report_file():
     stat_list[5] = round(intra_num / ttl_sites_num, 2)
     stat_list[0] = ttl_sites_num
     stat_list[1] = cal_sumOfOneColumn(f, 1)
-
+    stat_list[4] = count_peptides(f)
     column_sub_dic = {}
     for k in [6, 8]:
         for j in range(k, total_colom, 3):
@@ -292,8 +301,8 @@ def write2report(raw_name_list, final_list):
     report_file_name = get_report_file_name()
     b = open(report_file_name, 'w')
     
-    col = ["XL-sites", "XL-peptide", "Total Spec", \
-        "Best E-value", "Best Svm Score", "Inter or Intra Molecular"
+    col = ["XL-sites",  "Total Spec", \
+        "Best E-value", "Best Svm Score", "XL-peptide", "Inter or Intra Molecular"
     ]
     for name in raw_name_list:
         col.append(name + "_SpecNum")

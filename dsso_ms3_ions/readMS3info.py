@@ -13,8 +13,10 @@ def readms3Info(ms3Path):
             i += 1
         else:
             scanNum = int(f[i].strip().split("\t")[1])
-            precMS2mz, nceMS2 = f[i+6].strip().split(" ")[7].split("@")
-            precMS3mz, nceMS3 = f[i+6].strip().split(" ")[8].split("@")
+            linage_info = f[i+6].strip().split(" ")
+            # print(linage_info)
+            precMS2mz, nceMS2 = linage_info[-3].split("@")
+            precMS3mz, nceMS3 = linage_info[-2].split("@")
             precMS2mz = float(precMS2mz)
             precMS3mz = float(precMS3mz)
             actTypeMS2= "".join([ele for ele in nceMS2 if ele.isalpha()])
@@ -670,4 +672,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    ms3_path = r"F:\maxlinker_MCP\JinLiang10366422\JinLiang10366422_XL_SCX_v3_Fr_18.ms3"
+    readms3Info(ms3_path)
+    print("well done")

@@ -15,7 +15,7 @@ DK_list = [147.1128, 261.1557, 374.2398, 329.1568]
 
 
 def generate_ion_mass_range(num):
-    deta = num * deta_ppm / 100000
+    deta = num * deta_ppm / 1000000
     return num - deta, num + deta
 
 

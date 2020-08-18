@@ -1,0 +1,1 @@
+C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.11.22.06.35.35_Lacto_DSSO_preID_R1

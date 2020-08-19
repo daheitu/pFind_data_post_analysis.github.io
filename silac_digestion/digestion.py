@@ -10,6 +10,27 @@ min_pep_len = 1
 sites_dic = {"N":"", "C":"KR"}  # important, 
 
 
+mpMassTable = {
+        'A': 71.037114, 'R': 156.101111,
+        'N':114.042927, 'D': 115.026943,
+        'C': 103.009185, 'E': 129.042593,
+        'Q': 128.058578, 'G': 57.021464,
+        'H': 137.058912, 'I': 113.084064,
+        'L': 113.084064, 'K': 128.094963,
+        'M': 131.040485, 'F': 147.068414,
+        'P': 97.052764, 'S': 87.032028,
+        'T': 101.047679, 'U': 150.95363,
+        'W': 186.079313, 'Y': 163.06332,
+        'V': 99.068414, 'H2O': 18.01056,
+        'H1': 1.00782
+        }
+
+mpModMass = {
+        'Carbamidomethyl[C]': 57.021464,
+        'Oxidation[M]': 15.994915
+    }
+
+
 def pretreatment_fasta(fasta_path):
     fasta = open(fasta_path).readlines()
     FastaDic = {}
@@ -145,7 +166,45 @@ def main_idx():
     print(">>>>>>>写入完成<<<<<<<<<<<<<<<<<")
 
 
+def get_candidate_pep():
+    can_pep = []
+    f = open(os.path.basename(fasta_path)+"_enzyme").readlines()
+    for line in f:
+        if line.strip() and not line.startswith(">"):
+            pep = line.strip()
+            if len(pep) > 4 and len(pep) < 61 and pep[:-1].count("K") > 0:
+                print(pep)
+                can_pep.append(pep)
+    return can_pep
+
+
+def get_masses(pep_seq):
+    masses = []
+    for aa in pep_seq:
+        if aa != "C":
+            masses.append(mpMassTable[aa])
+        else:
+            masses.append(mpMassTable[aa] + mpModMass['Carbamidomethyl[C]'])
+    return masses
+
+
+def generate_pre(can_pep, linker_mass):
+    b = open("condidiate.csv", 'w')
+    for pep1 in can_pep:
+        masses1 = get_masses(pep1)
+        for pep2 in can_pep:
+            masses2 = get_masses(pep2)
+            preMass = sum(masses1) + sum(masses2) + linker_mass
+            wlist = [pep1, pep2, str(linker_mass)]
+            for c in range(3,7):
+                mz = round((preMass + c * 1.0078 ) / c, 4)
+                wlist.append(str(mz))
+            b.write(",".join(wlist)+"\n")
+    b.close()
+
 
 if __name__ == "__main__":
-    main_idx()
-    print("Done")
+    # main_idx()
+    # print("Done")
+    can_pep = get_candidate_pep()
+    generate_pre(can_pep, 158.004)

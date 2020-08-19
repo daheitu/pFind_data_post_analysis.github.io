@@ -1,7 +1,7 @@
 # coding = utf-8
 import os
 
-fasta_path = r"./bsa.fasta"
+fasta_path = r"./lysozyme.fasta"
 max_misclavage = 3
 max_pep_len = 600000
 min_pep_len = 1
@@ -175,6 +175,7 @@ def get_candidate_pep():
             if len(pep) > 4 and len(pep) < 61 and pep[:-1].count("K") > 0:
                 print(pep)
                 can_pep.append(pep)
+    print("候选肽数目%d" % len(can_pep))
     return can_pep
 
 
@@ -188,23 +189,68 @@ def get_masses(pep_seq):
     return masses
 
 
+def do_things(pep1, pep2, b, inc, linker_mass):
+    masses1 = get_masses(pep1)
+    masses2 = get_masses(pep2)
+    preMass = sum(masses1) + sum(masses2) + linker_mass
+    wlist = [pep1, pep2, str(linker_mass)]
+    for c in range(3,7):
+        mz = round((preMass + c * 1.0078 ) / c, 4)
+        if mz >= 375 and mz <= 1575:
+            inc_list = [""] * 12
+            inc_list[0] = str(mz)
+            inc_list[4] = str(c)
+            inc_list[5] = "Positive"
+            inc_list[8] = "27"
+            inc_list[9] = "NCE"
+            inc.write(",".join(inc_list)+"\n")
+        wlist.append(str(mz))
+    b.write(",".join(wlist)+"\n")
+
+
 def generate_pre(can_pep, linker_mass):
     b = open("condidiate.csv", 'w')
-    for pep1 in can_pep:
-        masses1 = get_masses(pep1)
-        for pep2 in can_pep:
-            masses2 = get_masses(pep2)
-            preMass = sum(masses1) + sum(masses2) + linker_mass
-            wlist = [pep1, pep2, str(linker_mass)]
-            for c in range(3,7):
-                mz = round((preMass + c * 1.0078 ) / c, 4)
-                wlist.append(str(mz))
-            b.write(",".join(wlist)+"\n")
+    inc = open("lysozem_inclusion.csv", 'w')
+    inc.write("Mass [m/z],Formula [M],Formula type,Species,CS [z],Polarity,Start [min],End [min],(N)CE,(N)CE type,MSX ID,Comment\n")
+
+    b.write("pep1, pep2, linker_mass, 3+, 4+, 5+, 6+\n")
+    
+    for i in range(len(can_pep)):
+        pep1 = can_pep[i]
+        do_things(pep1, pep1, b, inc, linker_mass)
+
+        for j in range(i+1, len(can_pep)):
+            pep2 = can_pep[j]
+            do_things(pep1, pep2, b, inc, linker_mass)
+            # masses1 = get_masses(pep1)
+            # masses2 = get_masses(pep2)
+            # preMass = sum(masses1) + sum(masses2) + linker_mass
+            # wlist = [pep1, pep2, str(linker_mass)]
+            # for c in range(3,7):
+            #     mz = round((preMass + c * 1.0078 ) / c, 4)
+            #     if mz >= 375 and mz <= 1575:
+            #         inc_list = [""] * 12
+            #         inc_list[0] = str(mz)
+            #         inc_list[4] = str(c)
+            #         inc_list[5] = "Positive"
+            #         inc_list[8] = "27"
+            #         inc_list[9] = "NCE"
+            #         inc.write(",".join(inc_list)+"\n")
+            #     wlist.append(str(mz))
+            # b.write(",".join(wlist)+"\n")
     b.close()
+    inc.close()
+
+
+# def write_2_inclusion():
+#     b = open("lysozem_inclusion.csv", 'w')
+#     b.write("Mass [m/z],Formula [M],Formula type,Species,CS [z],Polarity,Start [min],End [min],(N)CE,(N)CE type,MSX ID,Comment\n")
+#     f = open("condidiate.csv").readlines()
+#     for line in f[1:]:
 
 
 if __name__ == "__main__":
-    # main_idx()
+    main_idx()
     # print("Done")
     can_pep = get_candidate_pep()
     generate_pre(can_pep, 158.004)

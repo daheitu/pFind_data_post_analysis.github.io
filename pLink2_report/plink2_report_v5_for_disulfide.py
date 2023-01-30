@@ -5,7 +5,7 @@
 
 import os
 
-os.chdir(r"C:\Users\Yong Cao\Documents\pLink\pLink_task_2019.09.24.21.37.35_Integrin_PK\reports")
+os.chdir(r"C:\Users\Yong Cao\Documents\pLink\na_1013_TA\reports")
 
 
 def continueLines(starPos, f, numSpec):
@@ -70,7 +70,7 @@ def main():
             xlfl = open(fl, 'r').readlines()
         if fl.endswith("filtered_loop-linked_sites.csv"):
             lpfl = open(fl, 'r').readlines()
-    b = open("report.csv", 'w')
+    b = open("report_chem.csv", 'w')
     b.write(",".join(["linkPair", "numSpec", "bestEvale", "bestSVM", "pep", "LinkType", "spec1", "spec2"])+"\n")
     reportXLfile(xlfl, b, "Cross-link")
     reportXLfile(lpfl, b, "Loop-link")

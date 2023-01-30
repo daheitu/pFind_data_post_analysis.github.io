@@ -1,8 +1,8 @@
 from hmac import digest
 import os
 
-wk_dir = r"Z:\pFind_work_space\liufan_293_dss_filter_open\result"
-digest_fasta_path = r"Z:\STY_PROJ\pFind_search_dataset\LiuFAN_DSS_HELA_FAIMS\UP000005640_Homo_sapiens_20190921_reference_con_filter.fasta_enzyme"
+wk_dir = r"Z:\pFind_work_spacejuri_mito_dss_open\result"
+# digest_fasta_path = r"Z:\STY_PROJ\pFind_search_dataset\LiuFAN_DSS_HELA_FAIMS\UP000005640_Homo_sapiens_20190921_reference_con_filter.fasta_enzyme"
 #"D:\FastaDatabase\UP000005640_Homo_sapiens_20190921_reference_con.fasta_enzyme"
 # "Z:\STY_PROJ\pFind_search_dataset\LiuFAN_DSS_HELA_FAIMS\UP000005640_Homo_sapiens_20190921_reference_con_filter.fasta_enzyme"
 # "D:\FastaDatabase\uniprot-proteome_ Escherichia coli (strain K12)_20210123_xuzhancong.fasta_enzyme"
@@ -77,8 +77,11 @@ def main():
         print(mod)
         spec_num = rep_dic[mod][0]
         pep_num = rep_dic[mod][1]
-        cond_pep = get_condidate_site(digest_fasta_path, mod[-2])
-        b.write("%s,%d,%d,%f,%d,%f\n" % (mod, spec_num, cond_pep, spec_num/cond_pep, pep_num, pep_num/cond_pep))
+        # cond_pep = get_condidate_site(digest_fasta_path, mod[-2])
+        # b.write("%s,%d,%d,%f,%d,%f\n" % (mod, spec_num, cond_pep, spec_num/cond_pep, pep_num, pep_num/cond_pep))
+        # cond_pep = get_condidate_site(digest_fasta_path, mod[-2])
+        b.write("%s,%d,%d\n" % (mod, spec_num, pep_num))
+    
     b.close()
 
 

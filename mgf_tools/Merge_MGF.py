@@ -1,6 +1,11 @@
 # coding = utf-8
 import os
-os.chdir(r"M:\synthetic_pepteide_rawdata_NCE30\cov_cat\sensitivity_test\70_60") # important; the path of .mgf file 
+
+wk_path = r"M:\synthetic_pepteide_rawdata_NCE30\cov_cat\sensitivity_test\70_60" # important; the path of .mgf file 
+
+comb_fl_name = ""  # the name of merged file
+
+os.chdir(wk_path) 
 
 
 def combineMGF(flToW):
@@ -13,8 +18,8 @@ def combineMGF(flToW):
 
 
 def main():
-    combFLname = "70_60.mgf" # important name of combined file
-    b = open(combFLname, 'w')
+    # combFLname = "70_60.mgf" # important name of combined file
+    b = open(comb_fl_name, 'w')
     combineMGF(b)
     b.close()
 

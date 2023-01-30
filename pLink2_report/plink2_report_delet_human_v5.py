@@ -6,22 +6,11 @@ This script can help you to summary the plink2 report file
 import os
 import re
 
-work_path = r"Z:\MS_DATA\20221230\dss_bs3\Histones Rat_MeCP2-6His_con_BS3_peptide_global_output\reports" 
+reports_path = r"M:\synthetic_pepteide_rawdata_NCE30\cov_cat_DSSO\sensitivity_test\50_30\eCOLI_YEAST_CON_1000_output_plink_dsso\reports"
 
-
-spec_cutoff = 2  # spectra number cut-off
-Best_evalue_cutoff = 0.001 # 交联位点对层次最好的e-value cutoff
-
+spec_cutoff = 1  # spectra number cut-off
+Best_evalue_cutoff = 2 # 交联位点对层次最好的e-value cutoff
 E_value_cutoff_SpecLvl = 2 # 谱图层次的e-value cutoff
-
-
-################Don't change the following lines###############
-
-if work_path:
-    reports_path = work_path
-else:
-    reports_path = os.getcwd()
-
 
 
 def count_keyIndic(ele, ele_dic):
@@ -67,7 +56,7 @@ def judgeHomoHetro(linked_site, pepXL):
 def site_list_process(site_list, pepXLlist=["WFC(2)-XSV(2)"]):
     i = 0
     while i < len(site_list):
-        if "REVERSE" in site_list[i] or "gi|CON" in site_list[i]:
+        if "REVERSE" in site_list[i] or "gi|CON" in site_list[i] or "sp|" in site_list[i]:
             site_list.remove(site_list[i])
         else:
             i += 1
@@ -150,6 +139,8 @@ def cal_numRange(openedfl, k_column):
         lineList = line.rstrip("\n").split(",")
         if lineList[k]:
             valList.append(float(lineList[k]))
+    if valList == []:
+        valList = [0]
     valList.sort()
     return "{0:.1e}~{1:.1e}".format(valList[0], valList[-1])
 
@@ -175,7 +166,10 @@ def statistic_report_file():
     for i in range(1, len(f)):
         if f[i].strip("\n").split(",")[5] == "Intra":
             intra_num += 1
-    stat_list[5] = round(intra_num / ttl_sites_num, 2)
+    if ttl_sites_num == 0:
+        stat_list[5] = 0
+    else:
+        stat_list[5] = round(intra_num / ttl_sites_num, 2)
     stat_list[0] = ttl_sites_num
     stat_list[1] = cal_sumOfOneColumn(f, 1)
     stat_list[4] = count_peptides(f)

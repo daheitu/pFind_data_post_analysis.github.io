@@ -1,9 +1,9 @@
 import os
-
-os.chdir(r"G:\Huronggui\test\test")
-deta_ppm = 20
-feature_ion_mass_list = [147.1128, 187.0713, 204.1342, 275.1714, 422.2398] # 126.1282 114.128
-insy_cutoff = 0.15
+   
+os.chdir(r"M:\old_data\LST_HELA")
+deta_ppm = 10
+feature_ion_mass_list = [294.279]#147.1128, 187.0713, 204.1342, 275.1714, 422.2398] # 126.1282 114.128
+insy_cutoff = 0.01
 
 
 def generate_ion_mass_range(num):
@@ -46,9 +46,7 @@ def judge_spectra(feature_list, ms2_dic):
 def main():
     fl_list = os.listdir(os.getcwd())
     for fl in fl_list:
-        if fl[-9:] != "HCDFT.mgf":
-            continue
-        else:
+        if fl.endswith(".mgf") and "filter" not in fl:
             print(fl)
             total_spec = 0
             ft_spec = 0
@@ -57,42 +55,40 @@ def main():
             b = open(rep_name, 'w')
             i = 0
             while i < len(f):
-                print("current is " + str(i))
-                if f[i].strip() == "BEGIN IONS":
+                if not f[i].startswith("BEGIN IONS"):
+                    i += 1
+                else:
+                    print("current line is " + str(i), sep= "r")
+                    ms2_dic = {}
                     begin_idx = i
                     total_spec += 1
-                else:
-                    print("wrong")
-                chrg = int([i for i in f[i+2] if i.isdigit()][0])
-                # print(chrg)
-                mz = float(f[i+4][:-1].split("=")[1])
-                # mass = mz * chrg
-                print(chrg, mz)
-                p = i + 5
-                
-                ms2_dic = {}
-                while p < len(f) and f[p][0].isdigit():
-                    if f[p].strip() == "END IONS":                        
-                        break
-                    else:
-                        mass = float(f[p].strip().split(" ")[0])
-                        insy = float(f[p].strip().split(" ")[1])
-                        if mass not in ms2_dic:
+                    # chrg = int([i for i in f[i+2] if i.isdigit()][0])
+                    # # print(chrg)
+                    # mz = float(f[i+4][:-1].split("=")[1])
+                    # # mass = mz * chrg
+                    # print(chrg, mz)
+                    p = i + 1 
+                    
+                    while p < len(f):
+                        if f[p].startswith("END IONS"):
+                            end_idx = p                      
+                            break
+                        elif f[p][0].isdigit():
+                            mass, insy = [float(x) for x in f[p].strip().split(" ")]
                             ms2_dic[mass] = insy
-                    p += 1
-                end_idx = p
-
-                if judge_spectra(feature_ion_mass_list, ms2_dic):
-                    ft_spec += 1
-                    for m in range(begin_idx, end_idx + 1):
-                        b.write(f[m])
-                else:
-                    pass
-                
-                i = p + 1
-            print(round(float(ft_spec)/total_spec, 10))
+                            p += 1
+                        else:
+                            p += 1
+                    # print(ms2_dic)
+                    if judge_spectra(feature_ion_mass_list, ms2_dic):
+                        ft_spec += 1
+                        for m in range(begin_idx, end_idx + 1):
+                            b.write(f[m])
+                    
+                    i = p + 1
+            print(round(ft_spec/total_spec, 10))
             b.close()
 
 
 if __name__ == "__main__":
-    main()           
+    main()

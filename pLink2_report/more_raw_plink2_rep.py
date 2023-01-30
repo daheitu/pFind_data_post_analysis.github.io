@@ -5,10 +5,10 @@ import os
 import re
 
 
-wd_dir = r"K:\20200801"
+wd_dir = r"Z:\MS_DATA\20220328"
 
-spec_cutoff = 3  # spectra number cut-off
-Best_evalue_cutoff = 2 # 交联位点对层次最好的e-value cutoff
+spec_cutoff = 1  # spectra number cut-off
+Best_evalue_cutoff = 0.001 # 交联位点对层次最好的e-value cutoff
 E_value_cutoff_SpecLvl = 2 # 谱图层次的e-value cutoff
 
 
@@ -28,7 +28,7 @@ def merge_data():
             print(root)
             for fl in fls:
                 prot, linker, out_type = dir_list[-4:-1]
-                if fl.endswith("v5.csv") and "pep" not in fl:
+                if fl.endswith("v5.csv"):# and "pep" not in fl:
                     print(prot, linker)
                     sample_name =  "_".join([prot, linker, out_type])
                     f = open(os.path.join(root, fl)).readlines()
@@ -42,12 +42,10 @@ def merge_data():
                             break
                         else:
                             pro_type = linelist[5]
-                            if pro_type == "Intra":
+                            if "Intra" in pro_type:
                                 n_intra += 1
-                            elif pro_type == "Inter":
-                                n_inter += 1
                             else:
-                                n_other += 1
+                                n_inter += 1
                         
                     data_dic[sample_name] = [prot, linker, out_type, site_num, spec_num, n_intra, n_inter, n_other]
 
@@ -77,7 +75,7 @@ def writedic2file(dic, file_name):
 
 if __name__ == "__main__":
     summary()
-    rep_dic = merge_data()
-    print(rep_dic)
-    writedic2file(rep_dic, "yeast_ribosome_sc_cf%d.csv" % spec_cutoff)
-    print(os.getcwd())
+#     rep_dic = merge_data()
+#     print(rep_dic)
+#     writedic2file(rep_dic, "summary_FAIMS_evalue_sc_cf%d.csv" % spec_cutoff)
+#     print(os.getcwd())

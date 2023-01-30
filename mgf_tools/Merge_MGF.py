@@ -1,6 +1,6 @@
 # coding = utf-8
 import os
-os.chdir(r"G:\20190502\trypsin") # important; the path of .mgf file 
+os.chdir(r"M:\synthetic_pepteide_rawdata_NCE30\cov_cat\sensitivity_test\70_60") # important; the path of .mgf file 
 
 
 def combineMGF(flToW):
@@ -13,7 +13,7 @@ def combineMGF(flToW):
 
 
 def main():
-    combFLname = "AB_4D_HCDFT.mgf" # important name of combined file
+    combFLname = "70_60.mgf" # important name of combined file
     b = open(combFLname, 'w')
     combineMGF(b)
     b.close()

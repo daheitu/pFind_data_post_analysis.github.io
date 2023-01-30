@@ -3,7 +3,7 @@ from ftplib import FTP
 ftp = FTP()
 timeout = 30
 port = 21
-ftp.connect('ftp://ftp.pride.ebi.ac.uk/pride/data/archive/2019/07/PXD012546',port,timeout) # 连接FTP服务器
+ftp.connect('ftp://ftp.pride.ebi.ac.uk/pride/data/archive/2020/06/PXD014877',port,timeout) # 连接FTP服务器
 ftp.login('','') # 登录
 print(ftp.getwelcome())  # 获得欢迎信息 
 ftp.cwd('~')    # 设置FTP路径

@@ -3,10 +3,10 @@
 import os, time
 # from pquant import gene_run_pquant
 
-raw_p = r"K:\20200801\DSSO"
+raw_p = r"M:\synthetic_pepteide_rawdata_NCE30\cov_cat_DSSO\sensitivity_test"
 plink_bin_path = r"E:\pFindStudio\pLink2.3.9_0415\bin"
 # plink_para_demo = r"E:\pFindStudio\pLink_test_20200330\pLink_test_20200330\2.pLink2_plus_score_massfilter\2.pLink2_plus_score_massfilter.plink"
-spec_type = "pf"
+spec_type = "raw"
 # db_name = "synthetic_pep_con" # "CNGP_con" # "GST_sequence_con" # "BSA_with_resoure"
 
 #flow_type = 0 # 0 for +score； 1 for +mass filter； 2 for pLink-DSSO
@@ -91,8 +91,9 @@ def run_searcher(flow_type, linker, raw_path, db_name):
                 b.write("result_output_path = " + os.path.join(raw_path, output_name) +"\n")
             elif line.startswith("db_name"):
                 b.write("db_name = " + db_name + "\n")
+                # b.write("auto_reverse = 0\n")
             elif line.startswith("evalue ="):
-                b.write("evalue = 1\n")
+                b.write("evalue = 0\n")
             elif line.startswith("flow_type"):
                 b.write("flow_type = %s\n" % flow_type_inner)
             elif line.startswith("mass_filter_4_ion_index_flow"):
@@ -145,20 +146,33 @@ def del_dirs_path(path):
             del_fls_in_folder(os.path.join(path, fl))
     
 
+def isContain_raw(path):
+    for fl in os.listdir(path):
+        if fl.endswith(".mgf"):
+            return True
+    return False
+
+
 if __name__ == "__main__":
     raw_path = raw_p
     linker = "DSSO"
-    db_name = "small_mg1655_intra"
-    main_flow(raw_path, linker, db_name)
-    # for root, dirs, fls in os.walk(raw_p):
-    #     if root.split("\\")[-1].upper() == "DATA":
+    db_name = "Ecoli-uniprot-mg1655-20160918"#"synthetic_pep_con" #"# "bsa"#"lysozyme"
+    # main_flow(raw_path, linker, db_name)
+    # db_list = ["synthetic_pep_con", "eCOLI_YEAST_CON_1000", "eCOLI_YEAST_CON_2000", "eCOLI_YEAST_CON_4000", "eCOLI_YEAST_CON_8000"]
+    for root, dirs, fls in os.walk(raw_p):
+        if isContain_raw(root):# and  not is_searched(root):
+            print(root)
+            # for db_name in db_list:
+            main_flow(root, linker, db_name)
+        # root_list = 
+        # if "20200511" not in root and "backup" not in root and root.split("\\")[-1].upper() == "DSSO":
     #         # print(root)
     #         raw_path = root
     #         linker = "DSSO"
-    #         prot = root.split("\\")[-2]
-    #         db_name = pname_fasta_dic[prot]
+    #         # prot = root.split("\\")[-2]
+    #         # db_name = pname_fasta_dic[prot]
     #         if not is_searched(raw_path):
     #             print(root)
     #             main_flow(raw_path, linker, db_name)
-    #             print("sleep time: 10 mins")
-    #             time.sleep(300)
+    #             print("sleep time: 1 mins")
+    #             time.sleep(60)

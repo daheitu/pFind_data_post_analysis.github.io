@@ -1,10 +1,13 @@
 import os
 
-pro_looking = "sp|P35527|K1C9_HUMAN"  # important! enter the protein name you want search
-modify = "Deamidated"  # important! enter the modification type you want search
+wk_dir = r"E:\workspace\pFindTask97\result"
+pro_looking = "hp_pro"  # important! enter the protein name you want search
+modify = "hp3m[C]"  # important! enter the modification type you want search
+
+rep_file_name = modify + "_" + pro_looking+"_filter.txt"
 
 
-def filter_modification_from_pfind(path, tab):
+def filter_modification_from_pfind(path, tab, b):
     for line in tab[2:]:
         line_list = line.rstrip("\n").split("\t")
         if line_list[0].isdigit():
@@ -37,7 +40,8 @@ def filter_modification_from_pfind(path, tab):
             modi_list = line_list[8].split(";")[:-1]
             for mod in modi_list:
                 mod_type = mod.split(",")[1][:mod.split(",")[1].find("[")]
-                if modify == mod_type:  # modi name
+                if modify == mod_type:
+                    print()  # modi name
                     aa = mod[mod.find("[") + 1:mod.find("]")]
                     site = int(mod.split(",")[0])
                     site_infor.append(pro_looking + "[" +
@@ -58,7 +62,6 @@ def filter_modification_from_pfind(path, tab):
                 b.write("\n")
             else:
                 continue
-    b.close()
     return
 
 
@@ -107,18 +110,18 @@ def statistic_to_site_level():
 
 
 def main():
-    os.chdir(path)
-    os.chdir(os.getcwd())
+    os.chdir(wk_dir)
     tab = open("pFind.protein", 'r').readlines()
-    b = open("report.txt", 'w')
+    b = open(rep_file_name, 'w')
     b.write("\t".join([
         "ID", "Sequence", "Protein", "Modification", "Modi_site",
         "Spectra Number", "Final score", "Spectra title"
     ]))
     b.write("\n")
     path = os.getcwd()
-    filter_modification_from_pfind(path)
+    filter_modification_from_pfind(path, tab, b)
     statistic_to_site_level()
+    b.close()
 
 
 if __name__ == "__main__":

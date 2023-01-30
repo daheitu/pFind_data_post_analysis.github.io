@@ -210,7 +210,7 @@ def cal_inclu_time(specid, inclusion_list, inclusion_list_detail, specs, ms1spec
 
     fout = open(inclusion_list, 'w')
     fout.write(
-        'pep_pair,charge,mods,theo_m/z,id_rt_min,id_rt_max,spec_cnt,evalue_best,svm_best,svm_worst,pq_rt_min,pq_rt_max,fit_chrom_mean,fit_chrom_std,mean-3std,mean+3std\n'
+        'pep_pair,charge,mods,theo_m/z,id_rt_min,id_rt_max,spec_cnt,evalue_best,svm_best,svm_worst,pq_rt_min,pq_rt_max,fit_chrom_mean,fit_chrom_std,mean-3std,mean+3std,max_int\n'
     )
 
     fout2 = open(inclusion_list_detail, 'w')
@@ -258,10 +258,10 @@ def cal_inclu_time(specid, inclusion_list, inclusion_list_detail, specs, ms1spec
         #######################
         mean, std = norm.fit(data)
 
-        fout.write('%s,%s,%s,%f,%f,%f,%d,%E,%E,%E,%f,%f,%f,%f,%f,%f\n' %
+        fout.write('%s,%s,%s,%f,%f,%f,%d,%E,%E,%E,%f,%f,%f,%f,%f,%f,%f\n' %
                 (pep, charge, mod, theo_mz, id_rtmin, id_rtmax, specn,
                     evalue_best, svm_best, svm_worst, ms1_rtmin, ms1_rtmax, mean,
-                    std, mean - 3 * std, mean + 3 * std))
+                    std, mean - 3 * std, mean + 3 * std, max_int))
 
         fout2.write('%s,%s,%s,%f,%f,%f,%d,%E,%E,%E,%f,%f,%f,%f,%f,%f\n' %
                     (pep, charge, mod, theo_mz, id_rtmin, id_rtmax, specn,

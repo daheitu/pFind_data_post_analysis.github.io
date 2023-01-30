@@ -1,10 +1,15 @@
 # coding = utf-8
 import os
+import gc
 
-fasta_path = r"./lysozyme.fasta"
+wk_dir = r"Z:\STY_PROJ\COMPLEX_SAMPLE"
+os.chdir(wk_dir)
+gc.enable()
+
+fasta_path = r"./full_database_acdelete_con.fasta"
 max_misclavage = 3
-max_pep_len = 600000
-min_pep_len = 1
+max_pep_len = 60
+min_pep_len = 6
 
 
 sites_dic = {"N":"", "C":"KR"}  # important, 
@@ -166,17 +171,36 @@ def main_idx():
     print(">>>>>>>写入完成<<<<<<<<<<<<<<<<<")
 
 
-def get_candidate_pep():
+def get_candidate_pep_K():
     can_pep = []
     f = open(os.path.basename(fasta_path)+"_enzyme").readlines()
     for line in f:
+        print(f.index(line))
         if line.strip() and not line.startswith(">"):
             pep = line.strip()
-            if len(pep) > 4 and len(pep) < 61 and pep[:-1].count("K") > 0:
+            if pep not in can_pep and len(pep) > 5 and len(pep) <= 30 and pep[:-1].count("K") > 0:
                 print(pep)
                 can_pep.append(pep)
     print("候选肽数目%d" % len(can_pep))
     return can_pep
+
+ 
+def get_candidate_pep():
+    can_pep_K = []
+    can_pep = []
+    f = open(os.path.basename(fasta_path)+"_enzyme").readlines()
+    for line in f:
+        print(f.index(line))
+        if line.strip() and not line.startswith(">"):
+            pep = line.strip()
+            if pep not in can_pep:
+                # print(pep)
+                can_pep.append(pep)
+                if pep[:-1].count("K") > 0:
+                    can_pep_K.append(pep)
+    # print("候选肽数目%d" % len(can_pep))
+    # print(can_pep, can_pep_K)
+    return can_pep_K, can_pep
 
 
 def get_masses(pep_seq):
@@ -194,15 +218,15 @@ def do_things(pep1, pep2, b, inc, linker_mass):
     masses2 = get_masses(pep2)
     preMass = sum(masses1) + sum(masses2) + linker_mass
     wlist = [pep1, pep2, str(linker_mass)]
-    for c in range(3,7):
+    for c in range(3,6):
         mz = round((preMass + c * 1.0078 ) / c, 4)
-        if mz >= 375 and mz <= 1575:
+        if mz >= 375 and mz <= 1500:
             inc_list = [""] * 12
             inc_list[0] = str(mz)
             inc_list[4] = str(c)
             inc_list[5] = "Positive"
-            inc_list[8] = "27"
-            inc_list[9] = "NCE"
+            inc_list[8] = "" # 能量
+            inc_list[9] = ""
             inc.write(",".join(inc_list)+"\n")
         wlist.append(str(mz))
     b.write(",".join(wlist)+"\n")
@@ -251,6 +275,12 @@ def generate_pre(can_pep, linker_mass):
 
 if __name__ == "__main__":
     main_idx()
-    # print("Done")
-    can_pep = get_candidate_pep()
-    generate_pre(can_pep, 158.004)
+    print("Done")
+    # can_pep_K, can_pep = get_candidate_pep()
+    # can_pep_len = sum([len(x)-1 for x in can_pep])
+    # pep_k_len = len(can_pep_K)
+    # print(can_pep_len, pep_k_len)
+    # searchKK= pep_k_len ** 2
+    # searchK_X = can_pep_len * pep_k_len
+    # print(searchKK, searchK_X)
+    # # generate_pre(can_pep, 158.004)

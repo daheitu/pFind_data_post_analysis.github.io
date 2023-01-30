@@ -9,22 +9,31 @@ python Extract Fasta from LargeDatabase.py
 """
 
 import os
-os.chdir(r"E:\workspace\pFindTask76_integrin\result\pBuild_tmp")
-FastaFile = "UP000005640_Homo_sapiens_20190921_reference_con.fasta"
-new_fasta = "Integrin_Joyce.fasta"
-psm_cuoff = 30
+from unicodedata import name
+from xml.dom import NamespaceErr
+
+wk_dir = r"Z:\pFind_work_space\pFindTask3\result\pBuild_tmp"
+os.chdir(wk_dir)
+
+def get_fasta():
+    for fl in os.listdir(wk_dir):
+        if fl.endswith(".fasta"):
+            return fl
+    return "None"
+
+FastaFile = get_fasta()
+new_fasta = FastaFile[:-6] + "_filter.fasta"
+psm_cuoff = 2
 
 
 def Get_ProList_from_pBuildFile(filename):
-    protein_list = []
+    protein_set = set()
     f = open(filename, 'r').readlines()
     for line in f[1:]:
         line_list = line.rstrip("\n").split("\t")
         protein_name = line_list[1]
-        if protein_name not in protein_list:
-            protein_list.append(line_list[1])
-        else:
-            pass
+        if not protein_name.startswith("REV_"):
+            protein_set.add(protein_name)
         
         group = line_list[-2]
         if group == "":
@@ -32,18 +41,17 @@ def Get_ProList_from_pBuildFile(filename):
         else:
             Subset_Pro_List = group.split("/")[:-1]
             for pro in Subset_Pro_List:
-                if pro not in protein_list:
-                    protein_list.append(pro)
-                else:
-                    pass
-    return protein_list
+                if not pro.startswith("REV_"):
+                    protein_set.add(pro)
+                
+    return protein_set
 
 
-def Extract_protein(FastaName, namelist):
+def Extract_protein(FastaName, name_set):
     fasta = open(FastaName, 'r').readlines()
     b = open(new_fasta, "w")
     i = 0
-    pro_wr_num = 0
+    writed_pros = set()
     while i < len(fasta) and fasta[i][0] == '>':
         if fasta[i][1:5] == "CON_":
             for m in range(len(fasta[i])):           
@@ -60,9 +68,9 @@ def Extract_protein(FastaName, namelist):
                 else:
                     continue
         p = i + 1
-        if line_Pro_name in namelist:
+        if line_Pro_name in name_set:
             # print(line_Pro_name)
-            pro_wr_num += 1
+            writed_pros.add(line_Pro_name)
             b.write(fasta[i])
             while p < len(fasta) and fasta[p][0] != '>':
                 b.write(fasta[p])
@@ -72,11 +80,12 @@ def Extract_protein(FastaName, namelist):
                 p += 1
         i = p
     
-    if len(namelist) != pro_wr_num:
-        print("missing")
-        print(len(namelist), pro_wr_num)
-    else:
+    over = name_set & writed_pros
+    if over == name_set:
         print("well done")
+    else:
+        print(name_set - writed_pros)
+        print(writed_pros - name_set)
     return
 
 
@@ -84,7 +93,7 @@ def main():
     FileName_list = os.listdir(os.getcwd())
     Total_Pro = []
     for fl in FileName_list:
-        if fl[-4:] == ".txt":
+        if fl.endswith("selected_protein_result.txt"):
             Total_Pro = Get_ProList_from_pBuildFile(fl)
         else:
             continue

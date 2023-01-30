@@ -1,7 +1,7 @@
 import os
-os.chdir(r"D:\workspace\leiker\result")
+os.chdir(r"E:\workspace\pFindTask97\result")
 #pro_looking = "sp|P35527|K1C9_HUMAN"  # important! enter the protein name you want search
-modify = "Xlink_AL_clv[Y]"  # important! enter the modification type you want search
+modify = "hp3m[C]"  # important! enter the modification type you want search
 
 
 def filter_modification_from_pfind(path):

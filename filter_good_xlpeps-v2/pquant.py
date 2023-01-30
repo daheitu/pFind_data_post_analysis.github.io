@@ -27,10 +27,10 @@ def get_ms1_files(raw_path):
 
 def get_id_file(raw_p):
     for root, drs, fls in os.walk(raw_p):
-        if "score" in root:
-            for fl in fls:
-                if fl.endswith("cross-linked_spectra.csv"):
-                    return os.path.join(root, fl)+'|'
+        # if "plink_dsso" in root:
+        for fl in fls:
+            if fl.endswith("cross-linked_spectra.csv"):
+                return os.path.join(root, fl)+'|'
 
 
 def gene_run_pquant(plink_bin_path, raw_p):
@@ -47,6 +47,7 @@ def gene_run_pquant(plink_bin_path, raw_p):
             b.write(add_plink_path(line, plink_bin_path))
         elif header == "PATH_MS1":
             b.write('='.join([header, get_ms1_files(raw_p)])+';\n')
+            print(get_ms1_files(raw_p))
         elif header == "EXTENSION_TEXT_MS1":
             b.write("=".join([header, 'pf1'])+';\n')
         elif header == "PATH_IDENTIFICATION_FILE":
@@ -66,5 +67,5 @@ def gene_run_pquant(plink_bin_path, raw_p):
 
 if __name__ == "__main__":
     plink_bin_path = r"E:\pFindStudio\pLink2.3.9_0415\bin"
-    raw_p = r"G:\msData\synthetic_pepteide_rawdata\CV3_CV7\DSSO" # raw文件所在目录
+    raw_p = r"M:\TanDan_8std_dilute\BS3_INPUT\10" # raw文件所在目录
     gene_run_pquant(plink_bin_path, raw_p)

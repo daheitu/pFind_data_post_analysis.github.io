@@ -1,7 +1,9 @@
 # /usr/bin/python
 # coding = utf-8
 import os, random
+import numpy as np
 
+os.chdir(r"M:\synthetic_pepteide_rawdata_NCE30\make_fasta")
 
 def extractFasta(fastaFL):
     f = open(fastaFL, 'r').readlines()
@@ -75,9 +77,28 @@ def main():
                 b.write(line)
         b.close()
 
+
+def main_20210511(orig_fasta, N_rand):
+    num_fasta_dic = extractFasta(orig_fasta)
+    num_pro = len(num_fasta_dic)
+    num_seq = list(range(1, num_pro + 1))
+    num_ch = np.random.choice(num_seq, size= N_rand, replace=False)
+    f = open("./bsa.fasta", 'r').readlines()
+    b = open( orig_fasta[:-6] + "_" + str(N_rand) + "_bsa.fasta", 'w')
+    b.writelines(f)
+    for num in num_ch:
+        wlist = num_fasta_dic[num]
+        b.writelines(wlist)
+    
+    b.close()
+
+
+
 if __name__ == "__main__":
     #main()
     #add_BSA2fasta('./synthetic_pep.fasta')
     #add_BSA2fasta("./contaminant.fasta")
-    combinefasta(['./synthetic_pep.fasta', './contaminant.fasta', './uniprot_Ecoli_K12.fasta'], "synth_pep_cont_E.coli.fasta")
-    combinefasta(['./synthetic_pep.fasta', './contaminant.fasta'], "synth_pep_contaminant.fasta")
+    # combinefasta(['./synthetic_pep.fasta', './contaminant.fasta', './uniprot_Ecoli_K12.fasta'], "synth_pep_cont_E.coli.fasta")
+    # combinefasta(['./synthetic_pep.fasta', './contaminant.fasta'], "synth_pep_contaminant.fasta")
+    for n_pro in [200]:#500, 1000, 2000, 4000]:#, 6000, 8000, 10000]:
+        main_20210511("./eCOLI_YEAST_CON.fasta", n_pro)

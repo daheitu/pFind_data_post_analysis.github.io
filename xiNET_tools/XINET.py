@@ -1,18 +1,32 @@
 import os
 import re
 
-os.chdir(r"C:\Users\Administrator\Documents\pLink\pLink_task_2019.02.14.16.56.36\reports")
-input_file = "RTT105_RPA_2019.02.14_Trypsin_EDC-DEv3.txt"
+wk_dir = r"G:\msData\20200419\GST\DSS\output\reports" # 需要转化文件所在路径
+
+file_name_end = "v5.csv" # 需要转化文件名称
+
+os.chdir(wk_dir)
+
+def get_input_file():
+    for fl in os.listdir(wk_dir):
+        if fl.endswith(file_name_end):
+            return fl
+    print("Wrong")
+
+input_file = get_input_file()
 
 def get_linked_site_inform(linked_site):
     pos_list = re.findall("\((\d*)\)", linked_site)
     position1 = pos_list[0]
     position2 = pos_list[1]
-    p = linked_site.find("-")
-    m = linked_site.find("(" + position1 + ")-")
-    n = linked_site.find("(" + position2 + ")", p)
-    protein1 = linked_site[:m].strip()
-    protein2 = linked_site[p + 1:n].strip()
+    inf1, inf2 = linked_site.split(")-")
+    protein1 = inf1[:inf1.find("(" + position1)]
+    protein2 = inf2[:inf2.find("("+position2)]
+    # p = linked_site.find(")-")
+    # m = linked_site.find("(" + position1 + ")-")
+    # n = linked_site.find("(" + position2 + ")", p)
+    # protein1 = linked_site[:m].strip()
+    # protein2 = linked_site[p + 2:n].strip()
     if protein1 != protein2:
         link_type = "Inter"
     else:
@@ -34,13 +48,12 @@ def main():
             b.write("\n")
 
             for line in f[1:]:
-                line_list = line.rstrip("\n").split("\t")
+                line_list = line.rstrip("\n").split(",")
                 site = line_list[0]
                 spectra = line_list[1]
                 write_list = [spectra]
                 if site.isdigit():
-                    print(line)
-                    continue
+                    break
                 else:                
                     if "/" in site:
                         continue
@@ -48,10 +61,12 @@ def main():
                         if "Molecular" in site:
                             continue
                         else:
-                            write_list.extend(get_linked_site_inform(site)[:-1])
-                            b.write(",".join(write_list))
-                            print(write_list)
-                            b.write("\n")
+                            site_extrac = get_linked_site_inform(site)
+                            if site_extrac[-1] == "Inter" or site_extrac[-1] == "Intra" :
+                                write_list.extend(site_extrac[:-1])
+                                b.write(",".join(write_list))
+                                print(write_list)
+                                b.write("\n")
             b.close()
             print("Done")
         else:

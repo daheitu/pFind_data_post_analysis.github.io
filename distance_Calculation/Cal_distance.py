@@ -3,10 +3,17 @@ import re
 from numpy import *
 
 
-path = r"G:\msData\20200419\CNGP\DSS\output\reports"  # 搜索fasta 和 PDB 文件所在目录
-XL_sites_list = ["K"] # 交联位点
-linksiteFile = "CNGP_con_2020-04-20_DSS_Trypsin_v5.csv" # site文件
+path = r"G:\msData\20200419\GST\DSS\output\reports"  # 搜索fasta 和 PDB 文件所在目录
+XL_sites_list = ["K"]#, "D", 'E'] # 交联位点
+
+
+###################Don't change the following line#####################
 os.chdir(path)
+# linksiteFile = "YLCao_DSS_BS3.csv" # site文件
+for fl in os.listdir("./"):
+    if fl == "pLink_summary.csv" or fl.endswith("v5.csv"):
+        linksiteFile = fl
+
 
 AA_dict = dict(
     HIS="H", MET="M", THR="T",
@@ -295,16 +302,6 @@ def get_pdb_distance(cross_link_pair, chain2protName_dic,
 
 
 def main():
-    f = open(linksiteFile, 'r').readlines()
-    pair_list = []
-    for line in f[1:]:   #important
-        line_list = line.rstrip("\n").split(",")
-        # print(line_list)
-        if line_list[0].isdigit():
-            break
-        else:
-            pair_list.append(line_list[0])
-    
     B = open("xlink_distance.txt", 'w')
     file_list = os.listdir(os.getcwd())
     for fl in file_list:
@@ -317,14 +314,27 @@ def main():
             print("The pdb file is " + pdb_name)
         else:
             continue
-
+    
     chain2protName_dic, pos_delta_pdb2fasta = get_fasta_pdb_info(fasta, pdb)
     strc_info_dic = pretreatment_pdb(pdb)
     print(chain2protName_dic)
     print(pos_delta_pdb2fasta)
-    for pairs in pair_list:
-        wlist = get_pdb_distance(pairs, chain2protName_dic, pos_delta_pdb2fasta, strc_info_dic, pdb_name)
-        B.write("\t".join([str(ele) if type(ele) != str else ele for ele in wlist])+"\n")
+
+    f = open(linksiteFile, 'r').readlines()
+    
+    for line in f[1:]:   #important
+        line_list = line.rstrip("\n").split(",")
+        # print(line_list)
+        if line_list[0].isdigit():
+            break
+        else:
+            link_pair = line_list[0]
+            if "(" in link_pair and ")" in link_pair:
+                wlist = line_list[0:4]
+                wlist.extend(get_pdb_distance(link_pair, chain2protName_dic, pos_delta_pdb2fasta, strc_info_dic, pdb_name)[1:])
+                # wlist.extend()
+                B.write("\t".join([str(ele) if type(ele) != str else ele for ele in wlist])+"\n")
+        
     B.close()
 
 

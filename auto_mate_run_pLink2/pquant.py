@@ -66,5 +66,5 @@ def gene_run_pquant(plink_bin_path, raw_p):
 
 if __name__ == "__main__":
     plink_bin_path = r"E:\pFindStudio\pLink2.3.9_0415\bin"
-    raw_p = r"G:\msData\synthetic_pepteide_rawdata\CV3_CV7\DSSO" # raw文件所在目录
+    raw_p = r"K:\20200820_PRM" # raw文件所在目录
     gene_run_pquant(plink_bin_path, raw_p)

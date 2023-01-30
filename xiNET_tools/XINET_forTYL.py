@@ -1,8 +1,8 @@
 import os
 import re
 
-os.chdir(r"C:\Users\Administrator\Documents\pLink\pLink_task_2019.02.14.16.56.36\reports")
-input_file = "RTT105_RPA_2019.02.14_Trypsin_EDC-DEv3.txt"
+os.chdir(r"M:\20210117_HF\DSS\MB8_con_output\reports")
+input_file = "YLCao_DSS_BS3"
 
 def get_linked_site_inform(linked_site):
     pos_list = re.findall("\((\d*)\)", linked_site)

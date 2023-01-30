@@ -1,6 +1,6 @@
 # import os
 
-mass_find = 42
+mass_find = 222.178
 delta_ppm = 1000
 
 
@@ -9,7 +9,7 @@ def generate_ion_mass_range(num):
     return num - deta, num + deta
 
 mass_low, mass_up = generate_ion_mass_range(mass_find)
-f = open(r"E:\Program Files\pLink2.3.5\bin\modification.ini", 'r').readlines()
+f = open(r"E:\pFindStudio\pFind3\bin\modification.ini", 'r').readlines()
 
 for i in range(2, len(f), 2):
     #print(i)

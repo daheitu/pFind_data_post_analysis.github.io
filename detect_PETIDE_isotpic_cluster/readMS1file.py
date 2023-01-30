@@ -3,7 +3,7 @@ import random
 from detect_isotopic import detectIsotopic
 
 
-os.chdir(r'G:\6peptide_PhGO_HF_20190223')
+# os.chdir(r'G:\6peptide_PhGO_HF_20190223')
 
 def generate_mass_range(num, delta_ppm):
     delta = num * delta_ppm / 1000000

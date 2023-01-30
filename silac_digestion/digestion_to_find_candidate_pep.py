@@ -5,12 +5,12 @@ import gc
 
 gc.enable()
 
-fasta_path = r"./bsa.fasta"
+fasta_path = r"Z:\STY_PROJ\COMPLEX_SAMPLE\full_database_acdelete_con.fasta"
 max_misclavage = 3
-max_pep_len = 30
+max_pep_len = 60
 min_pep_len = 6
 
-sites_dic = {"N":"D", "C":"KR"}  # important, 
+sites_dic = {"N":"", "C":"KR"}  # important, 
 
 
 mpMassTable = {
@@ -113,7 +113,7 @@ def find_all_pep(seq, sites_dic):
         start_pos_list.append(start_pos)    
         cleave_site = isContain_sites(right, sites_dic)[1]
         left, mid, right, start_pos = split_sequence(right, sites_dic, start_pos, cleave_site)
-        print(left, mid, right, start_pos)
+        # print(left, mid, right, start_pos)
         if mid != "" and left != "":
             rep_list.extend([left, mid])
             start_pos_list.append(start_pos_list[-1]+len(left))

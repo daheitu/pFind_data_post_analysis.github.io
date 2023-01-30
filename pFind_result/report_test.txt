@@ -1,0 +1,3 @@
+Proteins	Total_site_num@pro	Total_pep_num@pro	Total_spec_num@pro	have unique peptides?
+	Modifiaction_site	Total_pep_num@site	Total_spec_num@site	best-score@site	Total_unique_pep_num@site	Total_unique_spec_num@site
+		Peptide	modification	best-score@pep	Total_spec_num@pep	is unique?	shared proteins

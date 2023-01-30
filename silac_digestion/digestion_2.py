@@ -1,13 +1,19 @@
 # coding = utf-8
 import os
+import gc
 
-fasta_path = r"./bsa.fasta"
-max_misclavage = 5
+wk_dir = r"Z:\STY_PROJ\pFind_search_dataset\LiuFAN_DSS_HELA_FAIMS"
+os.chdir(wk_dir)
+gc.enable()
+
+fasta_path = r"./UP000005640_Homo_sapiens_20190921_reference_con.fasta"
+
+max_misclavage = 3
 max_pep_len = 60
-min_pep_len = 5
+min_pep_len = 6
 
 
-sites_dic = {"N":"KR", "C":"KR"}
+sites_dic = {"N":"", "C":"KR"}
 
 
 def pretreatment_fasta(fasta_path):
@@ -88,7 +94,7 @@ def delet_non_element(exlist):
 
 def main():
     fasta_dic = pretreatment_fasta(fasta_path)
-    b = open(os.path.basename(fasta_path)+"_enzyme_orig", 'w')
+    b = open(os.path.basename(fasta_path)+"_enzyme", 'w')
     for pname in fasta_dic:
         seq = fasta_dic[pname]
         full_list = split_seq(seq, "K")
@@ -226,7 +232,22 @@ def main_idx():
     b.close()
 
 
+def stac_condidate_num(aa_list):
+    num = 0
+    f = open(os.path.basename(fasta_path)+"_enzyme").readlines()
+    for line in f:
+        if line[0] != ">":
+            if line[-2] in sites_dic["C"]:
+                for aa in aa_list:
+                    num += line[:-2].count(aa)
+            else:
+                for aa in aa_list:
+                    num += line.count(aa)
+    return num
 
 if __name__ == "__main__":
     main_idx()
-    main()
+    K_num = stac_condidate_num(["K"])
+    STY_num = stac_condidate_num(["S", "T", "Y"])
+    GVL_num = stac_condidate_num(["G", "V", "L"])
+    print(K_num, STY_num, GVL_num)

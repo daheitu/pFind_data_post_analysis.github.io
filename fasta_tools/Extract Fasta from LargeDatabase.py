@@ -9,8 +9,10 @@ python Extract Fasta from LargeDatabase.py
 """
 
 import os
-FastaFile = "Ecoli-uniprot-mg1655-20160918_con.fasta"
-new_fasta = "mg1655_small.fasta"
+wkpath = r"D:\FastaDatabase\DATABASE_EXTRACT\transcolon"
+os.chdir(wkpath)
+FastaFile = "uniprot-proteome_UP000006906_con.fasta"
+new_fasta = "trans_small.fasta"
 
 
 def Get_ProList_from_pBuildFile(filename):
@@ -19,13 +21,13 @@ def Get_ProList_from_pBuildFile(filename):
     f = open(filename, 'r').readlines()
     for line in f[1:]:
         line_list = line.rstrip("\n").split("\t")
-        protein_list.append(line_list[1])
-        group = line_list[-2]
-        if group == "":
-            continue
-        else:
-            Subset_Pro_List = group.split("/")[:-1]
-            protein_list += Subset_Pro_List
+        protein_list.append(line_list[0])
+        # group = line_list[-2]
+        # if group == "":
+        #     continue
+        # else:
+        #     Subset_Pro_List = group.split("/")[:-1]
+        #     protein_list += Subset_Pro_List
 
     pro_simplify_list = []
     for protein in protein_list:
@@ -67,7 +69,7 @@ def Extract_protein(FastaName, tgt_list):
 
 
 def main():
-    os.chdir(r"E:\workspace\pFindTask86\result\pBuild_tmp")
+    # os.chdir(r"E:\workspace\pFindTask86\result\pBuild_tmp")
     FileName_list = os.listdir(os.getcwd())
     Total_Pro = []
     Total_Pro_simp = []

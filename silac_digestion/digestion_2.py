@@ -2,11 +2,11 @@
 import os
 import gc
 
-wk_dir = r"Z:\STY_PROJ\pFind_search_dataset\LiuFAN_DSS_HELA_FAIMS"
+wk_dir = r"C:\Users\ycao\Desktop"
 os.chdir(wk_dir)
 gc.enable()
 
-fasta_path = r"./UP000005640_Homo_sapiens_20190921_reference_con.fasta"
+fasta_path = r"./seq.fasta"
 
 max_misclavage = 3
 max_pep_len = 60
@@ -77,7 +77,7 @@ def writePep2file(rep_list, min_len, max_len, seq, pname, b):
             pep = rep_list[i][j]
             if min_len <= len(pep) <= max_len:
                 start_index = seq.find(pep)+1
-                end_index = start_index+len(pep)
+                end_index = start_index + len(pep) - 1
                 pep_name = "_".join([pname, str(start_index), str(end_index)])
                 b.write(">"+pep_name+"\n")
                 b.write(pep+"\n")
@@ -215,7 +215,7 @@ def writePep2file_idx(rep_list, rep_index_list, pname, b):
             pep = rep_list[i][j]
             if min_pep_len <= len(pep) <= max_pep_len:
                 start_index = rep_index_list[i][j]+1
-                end_index = start_index+len(pep)
+                end_index = start_index+len(pep)-1
                 pep_name = "_".join([pname, str(start_index), str(end_index)])
                 b.write(">"+pep_name+"\n")
                 b.write(pep+"\n")
